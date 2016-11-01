@@ -1,0 +1,30 @@
+QTreeView {
+    show-decoration-selected: 1;
+}
+
+QTreeView {
+        border: 1px solid rgb(50, 50, 50);
+        background-color: rgb(57, 58, 60);
+}
+
+QTreeView::item {
+        height: 25px;
+        color: white;
+        border: none;
+        background-color: transparent;
+}
+QTreeView::item:hover, QTreeView::branch:hover { /** 鼠标滑过 **/
+        background-color: rgba(255, 255, 255, 40);
+}
+QTreeView::item:selected, QTreeView::branch:selected { /** 鼠标选中 **/
+        background-color: rgb(0, 160, 230);
+}
+QTreeView::branch {
+        background-color: transparent;
+}
+QTreeView::branch:open:has-children {
+        image: url(:/images/branch-open);
+}
+QTreeView::branch:closed:has-children {
+        image: url(:/images/branch-closed);
+}
