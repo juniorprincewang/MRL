@@ -21,7 +21,10 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 #include "imageviewer/imageviewer.h"
+#include "spreadsheet/spreadsheet.h"
 #include <QCommandLineParser>
+// for bind2nd
+#include <functional>
 
 #if defined(qApp)
 #undef qApp
@@ -50,9 +53,52 @@ public:
     }
 };
 
+void test_nth_element()
+{
+    std::vector<int> myvector;
+
+    // set some values:
+    for (int i=1; i<10; i++) myvector.push_back(i);   // 1 2 3 4 5 6 7 8 9
+
+    std::random_shuffle (myvector.begin(), myvector.end());
+    for (std::vector<int>::iterator it=myvector.begin(); it!=myvector.end(); ++it)
+    qDebug() << ' ' << *it;
+    qDebug() << '\n';
+    // using default comparison (operator <):
+    std::nth_element (myvector.begin(), myvector.begin()+5, myvector.end());
+
+    // using function as comp
+    std::nth_element (myvector.begin(), myvector.begin()+5, myvector.end());
+
+    // print out content:
+    qDebug() << "myvector contains:";
+    for (std::vector<int>::iterator it=myvector.begin(); it!=myvector.end(); ++it)
+    qDebug() << ' ' << *it;
+    qDebug() << '\n';
+
+    qDebug() << *(myvector.begin()+myvector.size()/2);
+}
+const static std::map<int, std::pair<double, double>>::value_type init_values[] =
+{
+    std::map<int, std::pair<double, double>>::value_type(2, std::make_pair(26.260 ,37.094)),
+    std::map<int, std::pair<double, double>>::value_type(3, std::make_pair(7.656  ,10.533)),
+    std::map<int, std::pair<double, double>>::value_type(4, std::make_pair(5.144  ,7.042)),
+    std::map<int, std::pair<double, double>>::value_type(5, std::make_pair(4.203  ,5.741)),
+    std::map<int, std::pair<double, double>>::value_type(6, std::make_pair(3.708  ,5.062)),
+};
+const static std::map<int, std::pair<double, double>, std::greater<int> > gFactors(init_values, init_values + 5);
+
+void test_vlookup()
+{
+    qDebug() << gFactors.lower_bound(8)->first;
+    qDebug() << gFactors.lower_bound(8)->second.first;
+}
 
 int main(int argc, char *argv[])
 {
+//    test_nth_element();
+//    test_vlookup();
+
     QApplication a(argc, argv);
 
 //    QTreeWidget treeWidget;

@@ -1,37 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "excel.h"
-#include <QAction>
-#include <QMenuBar>
-#include <QMessageBox>
-#include <QStatusBar>
-#include <QToolBar>
-#include <QSpinBox>
-#include <QSlider>
-#include <QHBoxLayout>
-#include <QDialog>
-#include <QDebug>
-#include <QTreeView>
-#include <QTreeWidget>
-#include <QTreeWidgetItem>
-#include <QDockWidget>
-#include <QListWidget>
-#include <QLabel>
-#include <QMessageBox>
-#include <QTabWidget>
-#include <QFormLayout>
-#include <QLineEdit>
-#include <QTextEdit>
-#include <QComboBox>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QVBoxLayout>
-#include <QGroupBox>
-// for imageviewer
-#include "imageviewer/imageviewer.h"
-#include <QCommandLineParser>
-//
-#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -208,19 +176,29 @@ void MainWindow::selectModelPage()
     }
     this->modelPage = new QGroupBox(tr("Make Your Choice"), this);
     // widgets
-    QCheckBox *pChineseCheckBox = new QCheckBox(tr("&Chinese Method"));
-    QCheckBox *pEUICheckBox = new QCheckBox(tr("&EU I"));
-    QCheckBox *pEUIICheckBox = new QCheckBox(tr("EU II"));
-    QCheckBox *pCali1CheckBox = new QCheckBox(tr("California 1"));
-    QCheckBox *pCali2CheckBox = new QCheckBox(tr("California 2"));
-    QCheckBox *pOECDCheckBox = new QCheckBox(tr("OEDC Method"));
-    QCheckBox *pNAFTACheckBox = new QCheckBox(tr("NAFTA Method"));
-    QPushButton *pSelectPushButton = new QPushButton();
+    QCheckBox *pChineseCheckBox = new QCheckBox(tr("&Chinese Method"), this->modelPage);
+    QCheckBox *pEUICheckBox = new QCheckBox(tr("&EU I"), this->modelPage);
+    QCheckBox *pEUIICheckBox = new QCheckBox(tr("EU II"), this->modelPage);
+    QCheckBox *pCali1CheckBox = new QCheckBox(tr("California 1"), this->modelPage);
+    QCheckBox *pCali2CheckBox = new QCheckBox(tr("California 2"), this->modelPage);
+    QCheckBox *pOECDCheckBox = new QCheckBox(tr("OEDC Method"), this->modelPage);
+    QCheckBox *pNAFTACheckBox = new QCheckBox(tr("NAFTA Method"), this->modelPage);
+    QPushButton *pSelectPushButton = new QPushButton(this->modelPage);
 //    pChineseCheckBox->setTristate(true);
     //set widgets
-    pSelectPushButton->setText(QString("Calculate"));
+    pChineseCheckBox->setObjectName("Chinese");
+    pEUICheckBox->setObjectName("EUI");
+    pEUIICheckBox->setObjectName("EUII");
+    pCali1CheckBox->setObjectName("Cali1");
+    pCali2CheckBox->setObjectName("Cali2");
+    pOECDCheckBox->setObjectName("OECD");
+    pNAFTACheckBox->setObjectName("NAFTA");
+    pSelectPushButton->setObjectName("Select");
+
+    pSelectPushButton->setText(QString("Select&Calculate"));
+    QObject::connect(pSelectPushButton, &QPushButton::clicked, this, &MainWindow::onCalculatePushButtonClicked);
     // set VBoxLayout
-    QVBoxLayout *vbox = new QVBoxLayout;
+    QVBoxLayout *vbox = new QVBoxLayout(this->modelPage);
     vbox->addWidget(pChineseCheckBox);
     vbox->addWidget(pEUICheckBox);
     vbox->addWidget(pEUIICheckBox);
@@ -298,22 +276,11 @@ void MainWindow::onPlotPushButtonClicked()
     }
     excel->pictureSavePath = picturePath;
     excel->savePlot();
-////    excel->addChart("Data");
-//    excel->~Excel();
-//    free(excel);
-//    excel=NULL;
-//    QGuiApplication::setApplicationDisplayName(ImageViewer::tr("Image Viewer"));
-//    QCommandLineParser commandLineParser;
-//    commandLineParser.addHelpOption();
-//    commandLineParser.addPositionalArgument(ImageViewer::tr("[file]"), ImageViewer::tr("Image file to open."));
-//    commandLineParser.process(QCoreApplication::arguments());
-    ImageViewer* imageViewer = new ImageViewer(this);
-//    if (!commandLineParser.positionalArguments().isEmpty()
-//            && !imageViewer->loadFile(commandLineParser.positionalArguments().front()))
-//    {
-//        return;
-//    }
+    excel->~Excel();
+    free(excel);
+    excel=NULL;
 
+    ImageViewer* imageViewer = new ImageViewer(this);
     imageViewer->loadFile(picturePath);
     imageViewer->show();
 }
@@ -392,6 +359,60 @@ void MainWindow::onTabWidgetClosed(int index)
     return;
 }
 
+void MainWindow::onCalculatePushButtonClicked()
+{
+    QCheckBox* Chinese = this->modelPage->findChild<QCheckBox*>("Chinese", Qt::FindDirectChildrenOnly);
+    QCheckBox* EUI = this->modelPage->findChild<QCheckBox*>("EUI", Qt::FindDirectChildrenOnly);
+    QCheckBox* EUII = this->modelPage->findChild<QCheckBox*>("EUII", Qt::FindDirectChildrenOnly);
+    QCheckBox* Cali1 = this->modelPage->findChild<QCheckBox*>("Cali1", Qt::FindDirectChildrenOnly);
+    QCheckBox* Cali2 = this->modelPage->findChild<QCheckBox*>("Cali2", Qt::FindDirectChildrenOnly);
+    QCheckBox* OECD = this->modelPage->findChild<QCheckBox*>("OECD", Qt::FindDirectChildrenOnly);
+    QCheckBox* NAFTA = this->modelPage->findChild<QCheckBox*>("NAFTA", Qt::FindDirectChildrenOnly);
+    bool NoneChecked = true;
+    QList<QCheckBox*> childCheckBoxes= this->modelPage->findChildren<QCheckBox*>(QString(), Qt::FindDirectChildrenOnly);
+    foreach(QCheckBox* tmp, childCheckBoxes)
+    {
+        if(tmp->isChecked())
+        {
+            NoneChecked = false;
+            break;
+        }
+    }
+    if(NoneChecked)
+    {
+        QMessageBox::critical(NULL, QString("Notification!"), QString("Selecting no models! Choose at least one."));
+        return;
+    }
+    Model model(this->data->residues.toStdVector());
+
+
+    if(Chinese->isChecked())
+    {
+
+    }
+    if(EUI->isChecked())
+    {
+        std::vector<std::pair<double, double> > results = model.EUMethodI();
+
+    }
+    if(EUII->isChecked())
+    {
+    }
+    if(Cali1->isChecked())
+    {
+    }
+    if(Cali2->isChecked())
+    {
+    }
+    if(OECD->isChecked())
+    {
+    }
+    if(NAFTA->isChecked())
+    {
+    }
+
+}
+
 void MainWindow::onTreeWidgetClicked(QTreeWidgetItem *item, int column)
 {
     QTreeWidgetItem* parent= item->parent();
@@ -404,7 +425,7 @@ void MainWindow::onTreeWidgetClicked(QTreeWidgetItem *item, int column)
 //    int tcount = ptreeWidget->topLevelItemCount();
     int itemIndex = ptreeWidget->indexOfTopLevelItem(parent);
 //    QMessageBox::about(NULL, QString("item"), QString().sprintf("%d, index = %d", col, itemIndex));
-    qDebug() << QString("col = %1, index = %1").arg(col).arg(itemIndex);
+    qDebug() << QString("col = %1, index = %2").arg(col).arg(itemIndex);
     switch(itemIndex)
     {
     case 0:

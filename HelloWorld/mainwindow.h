@@ -7,6 +7,35 @@
 #include <QTabWidget>
 #include <QGroupBox>
 #include <QString>
+#include "model.h"
+
+#include "excel.h"
+#include <QAction>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QStatusBar>
+#include <QToolBar>
+#include <QSpinBox>
+#include <QSlider>
+#include <QHBoxLayout>
+#include <QDialog>
+#include <QDebug>
+#include <QTreeView>
+#include <QDockWidget>
+#include <QListWidget>
+#include <QLabel>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QTextEdit>
+#include <QComboBox>
+#include <QPushButton>
+#include <QCheckBox>
+#include <QVBoxLayout>
+// for imageviewer
+#include "imageviewer/imageviewer.h"
+#include <QCommandLineParser>
+//
+#include <QDir>
 
 namespace Ui {
 class MainWindow;
@@ -62,6 +91,7 @@ public slots:
     void onAddPushButtonClicked();
     void onPlotPushButtonClicked();
     void onResiduesTextEditTextChanged();
+    void onCalculatePushButtonClicked();
 };
 
 #endif // MAINWINDOW_H

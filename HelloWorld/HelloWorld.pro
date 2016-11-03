@@ -9,7 +9,7 @@ QT       += core gui axcontainer printsupport dbus widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = HelloWorld
+TARGET = MRL
 TEMPLATE = app
 
 
@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     ndtri.cpp \
     ufunction.cpp \
     excel.cpp \
-    imageviewer/imageviewer.cpp
+    imageviewer/imageviewer.cpp \
+    model.cpp
 
 HEADERS  += mainwindow.h \
     newspaper.h \
@@ -37,7 +38,8 @@ HEADERS  += mainwindow.h \
     ndtri.h \
     ufunction.h \
     excel.h \
-    imageviewer/imageviewer.h
+    imageviewer/imageviewer.h \
+    model.h
 
 FORMS    += mainwindow.ui
 

@@ -6,6 +6,7 @@
 #include <QFileInfo>
 
 
+
 Excel::Excel()
 {
     this->excel = new QAxObject("Excel.Application");
@@ -19,7 +20,6 @@ Excel::~Excel()
     this->excel->dynamicCall("Quit()");
     free(this->excel);
 }
-
 
 void Excel::createDoc(const QString& fileName, QAxObject* qObject)
 {
@@ -134,29 +134,6 @@ void Excel::import(const QString& fileName)
     */
 }
 
-void Excel::plot(const QString &sheetName)
-{
-    QAxObject *work_book = this->excel->querySubObject("ActiveWorkBook");
-//    this->createDoc(QString("D:\\Qt\\workBookAPI.html"), work_book);
-    QAxObject *work_sheets = work_book->querySubObject("Sheets");  //Sheets也可换用WorkSheets
-
-    int sheet_count = work_sheets->property("Count").toInt();  //获取工作表数目
-
-    if(sheet_count > 0)
-    {
-//        QAxObject *work_sheet = work_book->querySubObject("Sheets(int)", 1);
-        QAxObject *work_sheet = work_book->querySubObject("Sheets(const String&)", sheetName);
-        QAxObject *shapes = work_sheet->querySubObject("Shapes");
-//        this->createDoc(QString("D:\\Qt\\shapesAPI.html"), shapes);
-        int shape_count = shapes->property("count").toInt();
-        qDebug() << shape_count;
-
-    }
-    work_book->dynamicCall("Close(Boolean)", false);
-}
-
-
-
 void Excel::savePlot()
 {
     QAxObject *work_books = this->excel->querySubObject("WorkBooks");
@@ -184,7 +161,7 @@ void Excel::savePlot()
     series->dynamicCall("NewSeries(void)");
 
     QAxObject * serie   = series->querySubObject("Item (int)", 1);
-    serie->setProperty("Name", "SERIE");
+    serie->setProperty("Name", "(Z-score, Ln(residue))");
     // from worksheet
 //        QAxObject * xvalues = worksheet->querySubObject("Range(D8:D21)");
 //        QAxObject * yvalues = worksheet->querySubObject("Range(C8:C21)");
@@ -192,8 +169,8 @@ void Excel::savePlot()
 //        serie->setProperty("Values",  yvalues->asVariant());
     // from vector
     QList<QVariant> listXValues, listValues;
-    QVector<double> ln_residues = this->getLnResiduesVector();
-    QVector<double> zScore = this->getZScoreVector();
+    std::vector<double> ln_residues = Model::getLnVector(this->residues.toStdVector());
+    std::vector<double> zScore = Model::getZScoreVector(this->residues.toStdVector());
 //        listXValues =  zScore.toList();
 //        listValues = ln_residues.toList();
     for(int i=0; i<ln_residues.size(); i++)
@@ -275,7 +252,8 @@ void Excel::savePlot()
     workbook->dynamicCall("Close (Boolean)", false);
     this->excel->dynamicCall("Quit (void)");
 }
-void Excel::copyFormula()
+
+void Excel::exportPicture()
 {
     QAxObject *work_book = this->excel->querySubObject("ActiveWorkBook");
     QAxObject *work_sheets = work_book->querySubObject("Sheets");  //Sheets也可换用WorkSheets
@@ -387,46 +365,6 @@ void print(QVector<T> source)
     for(auto num : source)
         qDebug() << num;
 }
-QVector<double> Excel::getLnResiduesVector()
-{
-    QVector<double> result;
-    for(int i=0; i<this->residues.size(); i++)
-    {
-        result.push_back(ln(residues[i]));
-    }
-    return result;
-}
-
-QVector<double> Excel::getZScoreVector()
-{
-    int len = this->residues.length();
-    std::vector<double> ln_vec;
-    for(auto num : this->residues)
-    {
-        ln_vec.push_back(ln(num));
-    }
-//    print(QVector<double>::fromStdVector( ln_vec));
-    QVector<int> ln_position = QVector<int>::fromStdVector(rank(ln_vec, 0));
-//    print(ln_position);
-    QVector<int> ln_repeat;
-    std::vector<double>::iterator it = ln_vec.begin();
-    for(; it != ln_vec.end(); it++)
-    {
-//        std::vector<double> tmp(ln_vec.begin(), it);
-        int r = countIf(std::vector<double>(ln_vec.begin(), it), *it);
-        ln_repeat.push_back(r+1);
-    }
-//    print(ln_repeat);
-    QVector<double> result;
-    for(int i=0; i<len; i++)
-    {
-        double tmp = (ln_position[i]+ln_repeat[i]-1-0.375)/(len+0.25);
-        double z_score= ppf(tmp);
-        result.push_back(z_score);
-    }
-    return result;
-}
-
 int Excel::addChart(const QString& sheetName)
 {
 //    QAxObject *excel = new QAxObject("Excel.Application");
