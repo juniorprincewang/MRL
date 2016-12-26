@@ -1,4 +1,4 @@
-<RCC>
+﻿<RCC>
     <qresource prefix="/images">
         <file alias="doc-open">6.png</file>
         <file alias="file-open">curriculum.png</file>

@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "newspaper.h"
 #include "reader.h"
 #include "eventlabel.h"
@@ -21,10 +21,11 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 #include "imageviewer/imageviewer.h"
-#include "spreadsheet/spreadsheet.h"
+//#include "spreadsheet/spreadsheet.h"
 #include <QCommandLineParser>
 // for bind2nd
 #include <functional>
+#include <QTextCodec>
 
 #if defined(qApp)
 #undef qApp
@@ -100,6 +101,8 @@ int main(int argc, char *argv[])
 //    test_vlookup();
 
     QApplication a(argc, argv);
+    // 设置字符集
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
 
 //    QTreeWidget treeWidget;
 //    treeWidget.setColumnCount(1);
@@ -171,14 +174,14 @@ int main(int argc, char *argv[])
 //    QObject::connect(&pushButton, &QPushButton::clicked, &QApplication::quit);
 //    pushButton.show();
 
-    /*
+
     // sheet test
 //    Q_INIT_RESOURCE(spreadsheet);
-    SpreadSheet sheet(10, 6);
-//    sheet.setWindowIcon(QPixmap(":/images/interview.png"));
-    sheet.show();
-    sheet.layout()->setSizeConstraint(QLayout::SetFixedSize);
-*/
+//    SpreadSheet sheet(10, 6);
+////    sheet.setWindowIcon(QPixmap(":/images/interview.png"));
+//    sheet.show();
+//    sheet.layout()->setSizeConstraint(QLayout::SetFixedSize);
+
 
 //    QFile file(":/qss/treeview");
 //    if(file.open(QFile::ReadOnly))
@@ -190,7 +193,8 @@ int main(int argc, char *argv[])
 //        else
 //            QMessageBox::about(NULL, "Test", "Open File Failed");
 
-    CommonHelper::setStyle(":/qss/style");
+    // main process
+//    CommonHelper::setStyle(":/qss/style");
     QPixmap pixmap(":/images/doc-open");
     QSplashScreen* splash = new QSplashScreen(pixmap);
 

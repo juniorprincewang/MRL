@@ -1,12 +1,21 @@
-#include "model.h"
+﻿#include "model.h"
 #include <cmath>
 // for bind2nd
 #include <functional>
 
+Model::Model()
+{
+
+}
 
 Model::Model(std::vector<double> residues)
 {
     this->residues = residues;
+}
+
+Model::~Model()
+{
+
 }
 
 std::vector<double> Model::getLnVector(const std::vector<double> v)
@@ -72,8 +81,7 @@ double Model::getStdDev(const std::vector<double> v)
     std::transform(v.begin(), v.end(), diff.begin(),
                    std::bind2nd(std::minus<double>(), mean));
     double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-    double stdev = std::sqrt(sq_sum / v.size());
-    return stdev;
+    return std::sqrt(sq_sum / (v.size()-1));
 }
 
 std::vector<double> Model::getLnResidues()
@@ -83,46 +91,471 @@ std::vector<double> Model::getLnResidues()
     return this->lnResidues;
 }
 
-std::vector<std::pair<double, double> > Model::EUMethodI()
+double Model::ceil(double target, double precision)
+{
+    return precision * std::ceil(target/precision);
+}
+
+int Model::ShapiroFranciaNormalityTest(double rSquaredValue)
 {
     if(this->residues.empty())
     {
         qDebug() << "Calling EUMethodI with empty residues!";
-        return 0.0;
+        return 0;
     }
-    double Estimated100pthPercentile = 0.0;
-    double ToleranceBoundFactor = 0.0;
-    double NinetyFiveToleranceBound = 0.0;
-    std::vector<double> v;
-    if(log)
-    {
-        v = this->getLnResidues();
-    }
+    int count = this->residues.size();
+    std::pair<double, double> r = rCritical.lower_bound(count)->second;
+    double r99 =  r.first;
+    double r95 = r.second;
+    if(rSquaredValue <= pow(r99, 2))
+        return 1;
+    else if(rSquaredValue <= pow(r95, 2))
+        return 2;
     else
-        v = this->residues;
+        return 3;
+}
+
+std::vector<std::pair<double, int> > Model::EUMethodI()
+{
+    if(this->residues.empty())
+    {
+        qDebug() << "Calling EUMethodI with empty residues!";
+        return std::vector<std::pair<double, int> >();
+    }
+    double estimated100pthPercentile = 0.0;
+    double toleranceBoundFactor = 0.0;
+    double ninetyFiveToleranceBound = 0.0;
+    double precision= 0.0;
+    int significantFigure = 0;
+    double afterPrecision = 0.0;
+    std::vector<double> v(this->residues);
+
     double mean = this->getMedian(v);
     double stdDev = this->getStdDev(v);
-    std::vector<std::pair<double, double> > result;
+    std::vector<std::pair<double, int> > result;
     //if(percentile == 0.95)
     {
-        Estimated100pthPercentile = mean+1.645*stdDev;
-        std::pair<double, double> gFactorResult = gFactor.upper_bound(v.size())->second;
-        ToleranceBoundFactor = gFactorResult.first;
-        NinetyFiveToleranceBound = mean+ToleranceBoundFactor*stdDev;
-        result.push_back(std::make_pair(Estimated100pthPercentile, NinetyFiveToleranceBound));
+//        qDebug() << "std dev" << stdDev;
+//        qDebug() << "mean" << mean;
+        estimated100pthPercentile = mean+1.645*stdDev;
+//        qDebug() << estimated100pthPercentile;
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+//        qDebug() << "precision" << precision;
+//        qDebug() << "significantFigure " << significantFigure;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+//         estString(QString::number(afterPrecision, 'f', significantFigure));
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+        //
+        std::pair<double, double> gFactorResult = gFactor.lower_bound(v.size())->second;
+        toleranceBoundFactor = gFactorResult.first;
+//        qDebug() << "toleranceBoundFactor " << toleranceBoundFactor;
+        ninetyFiveToleranceBound = mean+toleranceBoundFactor*stdDev;
+        std::pair<double, int> ninetyFiveResult= rounding.lower_bound(ninetyFiveToleranceBound)->second;
+        precision = ninetyFiveResult.first;
+        significantFigure = ninetyFiveResult.second;
+        qDebug() << "precision" << precision;
+        qDebug() << "significantFigure " << significantFigure;
+        afterPrecision = ceil(ninetyFiveToleranceBound, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+//        QString ninetyFiveString(QString::number(afterPrecision, 'f', significantFigure));
+
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
     }
     //else if(percentile == 0.99)
     {
-        Estimated100pthPercentile = mean+2.326*stdDev;
-        std::pair<double, double> gFactorResult = gFactor.upper_bound(v.size())->second;
-        ToleranceBoundFactor = gFactorResult.second;
-        NinetyFiveToleranceBound = mean+ToleranceBoundFactor*stdDev;
-        result.push_back(std::make_pair(Estimated100pthPercentile, NinetyFiveToleranceBound));
+        estimated100pthPercentile = mean+2.326*stdDev;
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+//        double estDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+
+        std::pair<double, double> gFactorResult = gFactor.lower_bound(v.size())->second;
+        toleranceBoundFactor = gFactorResult.second;
+        ninetyFiveToleranceBound = mean+toleranceBoundFactor*stdDev;
+        std::pair<double, int> ninetyFiveResult= rounding.lower_bound(ninetyFiveToleranceBound)->second;
+        precision = ninetyFiveResult.first;
+        significantFigure = ninetyFiveResult.second;
+        afterPrecision = ceil(ninetyFiveToleranceBound, precision);
+//        double ninetyFiveDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+//        result.push_back(std::make_pair(estDbl, ninetyFiveDbl));
     }
 //    else if(percentile == 0.999)
     {
-        Estimated100pthPercentile = mean+3.09*stdDev;
-        result.push_back(std::make_pair(Estimated100pthPercentile, 0.0));
+        estimated100pthPercentile = mean+3.09*stdDev;
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+//        double estDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+//        result.push_back(std::make_pair(estDbl, 0.0));
     }
+    return result;
+}
+
+std::vector<QString > Model::EUMethodI(bool rounded)
+{
+    if(this->residues.empty())
+    {
+        qDebug() << "Calling EUMethodI with empty residues!";
+        return std::vector<QString>();
+    }
+    double estimated100pthPercentile = 0.0;
+    double toleranceBoundFactor = 0.0;
+    double ninetyFiveToleranceBound = 0.0;
+    double precision= 0.0;
+    int significantFigure = 0;
+    double afterPrecision = 0.0;
+    std::vector<double> v(this->residues);
+
+    double mean = this->getMedian(v);
+    double stdDev = this->getStdDev(v);
+    std::vector<QString > result;
+    //if(percentile == 0.95)
+
+//        qDebug() << "std dev" << stdDev;
+//        qDebug() << "mean" << mean;
+    estimated100pthPercentile = mean+1.645*stdDev;
+    std::pair<double, double> gFactorResult = gFactor.lower_bound(v.size())->second;
+    toleranceBoundFactor = gFactorResult.first;
+//        qDebug() << "toleranceBoundFactor " << toleranceBoundFactor;
+    ninetyFiveToleranceBound = mean+toleranceBoundFactor*stdDev;
+    if(rounded)
+    {
+//        qDebug() << estimated100pthPercentile;
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+//        qDebug() << "precision" << precision;
+//        qDebug() << "significantFigure " << significantFigure;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+//         estString(QString::number(afterPrecision, 'f', significantFigure));
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+        /*    */
+        std::pair<double, int> ninetyFiveResult= rounding.lower_bound(ninetyFiveToleranceBound)->second;
+        precision = ninetyFiveResult.first;
+        significantFigure = ninetyFiveResult.second;
+//        qDebug() << "precision" << precision;
+//        qDebug() << "significantFigure " << significantFigure;
+        afterPrecision = ceil(ninetyFiveToleranceBound, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+//        QString ninetyFiveString(QString::number(afterPrecision, 'f', significantFigure));
+//        result.push_back(std::make_pair(afterPrecision, significantFigure));
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+    }
+    else
+    {
+        result.push_back(QString::number(estimated100pthPercentile));
+        result.push_back(QString::number(ninetyFiveToleranceBound));
+
+    }
+
+    //else if(percentile == 0.99)
+
+    estimated100pthPercentile = mean+2.326*stdDev;
+    gFactorResult = gFactor.lower_bound(v.size())->second;
+    toleranceBoundFactor = gFactorResult.second;
+    ninetyFiveToleranceBound = mean+toleranceBoundFactor*stdDev;
+    if(rounded)
+    {
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+    //        double estDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+
+        std::pair<double, int> ninetyFiveResult= rounding.lower_bound(ninetyFiveToleranceBound)->second;
+        precision = ninetyFiveResult.first;
+        significantFigure = ninetyFiveResult.second;
+        afterPrecision = ceil(ninetyFiveToleranceBound, precision);
+    //        double ninetyFiveDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+    }
+    else
+    {
+        result.push_back(QString::number(estimated100pthPercentile));
+        result.push_back(QString::number(ninetyFiveToleranceBound));
+
+    }
+
+
+//    else if(percentile == 0.999)
+
+    estimated100pthPercentile = mean+3.09*stdDev;
+    if(rounded)
+    {
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+
+    }
+    else
+    {
+        result.push_back(QString::number(estimated100pthPercentile));
+    }
+
+    return result;
+}
+
+
+std::vector<std::pair<double, int> > Model::NAFTA()
+{
+    if(this->residues.empty())
+    {
+        qDebug() << "Calling NAFTA with empty residues!";
+        return std::vector<std::pair<double, int> >();
+    }
+    std::vector<double> v(this->getLnResidues());
+//    for(auto a:v)
+//        qDebug() << a;
+    double estimated100pthPercentile = 0.0;
+    double toleranceBoundFactor = 0.0;
+    double ninetyFiveToleranceBound = 0.0;
+    double precision= 0.0;
+    int significantFigure = 0;
+    double afterPrecision = 0.0;
+
+    double mean = this->getMedian(v);
+    double stdDev = this->getStdDev(v);
+    std::vector<std::pair<double, int> > result;
+    //if(percentile == 0.95)
+    {
+//        qDebug() << "std dev" << stdDev;
+//        qDebug() << "mean" << mean;
+        estimated100pthPercentile = exp(mean+1.645*stdDev);
+//        qDebug() << estimated100pthPercentile;
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+//        qDebug() << "precision" << precision;
+//        qDebug() << "significantFigure " << significantFigure;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+//         estString(QString::number(afterPrecision, 'f', significantFigure));
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+        //
+        std::pair<double, double> gFactorResult = gFactor.lower_bound(v.size())->second;
+        toleranceBoundFactor = gFactorResult.first;
+//        qDebug() << "toleranceBoundFactor " << toleranceBoundFactor;
+        ninetyFiveToleranceBound = exp(mean+toleranceBoundFactor*stdDev);
+        std::pair<double, int> ninetyFiveResult= rounding.lower_bound(ninetyFiveToleranceBound)->second;
+        precision = ninetyFiveResult.first;
+        significantFigure = ninetyFiveResult.second;
+//        qDebug() << "precision" << precision;
+//        qDebug() << "significantFigure " << significantFigure;
+        afterPrecision = ceil(ninetyFiveToleranceBound, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+//        QString ninetyFiveString(QString::number(afterPrecision, 'f', significantFigure));
+
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+    }
+    //else if(percentile == 0.99)
+    {
+        estimated100pthPercentile = exp(mean+2.326*stdDev);
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+//        double estDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+
+        std::pair<double, double> gFactorResult = gFactor.lower_bound(v.size())->second;
+        toleranceBoundFactor = gFactorResult.second;
+        ninetyFiveToleranceBound = exp(mean+toleranceBoundFactor*stdDev);
+        std::pair<double, int> ninetyFiveResult= rounding.lower_bound(ninetyFiveToleranceBound)->second;
+        precision = ninetyFiveResult.first;
+        significantFigure = ninetyFiveResult.second;
+        afterPrecision = ceil(ninetyFiveToleranceBound, precision);
+//        double ninetyFiveDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+//        result.push_back(std::make_pair(estDbl, ninetyFiveDbl));
+    }
+//    else if(percentile == 0.999)
+    {
+        estimated100pthPercentile = exp(mean+3.09*stdDev);
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+//        double estDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(std::make_pair(afterPrecision, significantFigure));
+//        result.push_back(std::make_pair(estDbl, 0.0));
+    }
+    return result;
+}
+
+std::vector<QString > Model::NAFTA(bool rounded)
+{
+    if(this->residues.empty())
+    {
+        qDebug() << "Calling NAFTA with empty residues!";
+        return std::vector<QString>();
+    }
+    double estimated100pthPercentile = 0.0;
+    double toleranceBoundFactor = 0.0;
+    double ninetyFiveToleranceBound = 0.0;
+    double precision= 0.0;
+    int significantFigure = 0;
+    double afterPrecision = 0.0;
+    std::vector<double> v(this->getLnResidues());
+
+    double mean = this->getMedian(v);
+    double stdDev = this->getStdDev(v);
+    std::vector<QString > result;
+    //if(percentile == 0.95)
+
+//        qDebug() << "std dev" << stdDev;
+//        qDebug() << "mean" << mean;
+    estimated100pthPercentile = exp(mean+1.645*stdDev);
+    std::pair<double, double> gFactorResult = gFactor.lower_bound(v.size())->second;
+    toleranceBoundFactor = gFactorResult.first;
+//        qDebug() << "toleranceBoundFactor " << toleranceBoundFactor;
+    ninetyFiveToleranceBound = exp(mean+toleranceBoundFactor*stdDev);
+    if(rounded)
+    {
+//        qDebug() << estimated100pthPercentile;
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+//        qDebug() << "precision" << precision;
+//        qDebug() << "significantFigure " << significantFigure;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+//         estString(QString::number(afterPrecision, 'f', significantFigure));
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+        /*    */
+        std::pair<double, int> ninetyFiveResult= rounding.lower_bound(ninetyFiveToleranceBound)->second;
+        precision = ninetyFiveResult.first;
+        significantFigure = ninetyFiveResult.second;
+//        qDebug() << "precision" << precision;
+//        qDebug() << "significantFigure " << significantFigure;
+        afterPrecision = ceil(ninetyFiveToleranceBound, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+//        QString ninetyFiveString(QString::number(afterPrecision, 'f', significantFigure));
+//        result.push_back(std::make_pair(afterPrecision, significantFigure));
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+    }
+    else
+    {
+        result.push_back(QString::number(estimated100pthPercentile));
+        result.push_back(QString::number(ninetyFiveToleranceBound));
+
+    }
+
+    //else if(percentile == 0.99)
+
+    estimated100pthPercentile = exp(mean+2.326*stdDev);
+    gFactorResult = gFactor.lower_bound(v.size())->second;
+    toleranceBoundFactor = gFactorResult.second;
+    ninetyFiveToleranceBound = exp(mean+toleranceBoundFactor*stdDev);
+    if(rounded)
+    {
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+    //        double estDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+
+        std::pair<double, int> ninetyFiveResult= rounding.lower_bound(ninetyFiveToleranceBound)->second;
+        precision = ninetyFiveResult.first;
+        significantFigure = ninetyFiveResult.second;
+        afterPrecision = ceil(ninetyFiveToleranceBound, precision);
+    //        double ninetyFiveDbl = QString::number(afterPrecision, 'f', significantFigure).toDouble();
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+    }
+    else
+    {
+        result.push_back(QString::number(estimated100pthPercentile));
+        result.push_back(QString::number(ninetyFiveToleranceBound));
+
+    }
+
+
+//    else if(percentile == 0.999)
+
+    estimated100pthPercentile = exp(mean+3.09*stdDev);
+    if(rounded)
+    {
+        std::pair<double, int> roundingResult= rounding.lower_bound(estimated100pthPercentile)->second;
+        precision = roundingResult.first;
+        significantFigure = roundingResult.second;
+        afterPrecision = ceil(estimated100pthPercentile, precision);
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+
+    }
+    else
+    {
+        result.push_back(QString::number(estimated100pthPercentile));
+    }
+
+    return result;
+}
+
+double Model::percentile(std::vector<double> array, double p)
+{
+    int count = array.size();
+    std::vector<double> v(array.begin(), array.end());
+    std::sort(v.begin(), v.end());
+    double tmp = (count-1)*p;
+    int pos = (int)tmp;
+    double percent = tmp-pos;
+    return (1-percent)*v[pos]+percent*v[pos+1];
+}
+
+std::vector<QString > Model::EUMethodII(bool rounded)
+{
+    if(this->residues.empty())
+    {
+        qDebug() << "Calling EUMethodII with empty residues!";
+        return std::vector<QString>();
+    }
+    std::vector<double> v(this->residues);
+    int lens = v.size();
+    double p = (0.75*lens-0.25)/(lens-1);
+    double r = 2*Model::percentile(v, p);
+    std::vector<QString> result;
+    if(rounded)
+    {
+        std::pair<double, int> roundingResult= rounding.lower_bound(r)->second;
+        double precision = roundingResult.first;
+        int significantFigure = roundingResult.second;
+//        qDebug() << "precision" << precision;
+//        qDebug() << "significantFigure " << significantFigure;
+        double afterPrecision = ceil(r, precision);
+//        qDebug() << "est " << est;
+//        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
+//        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+    }
+    else
+        result.push_back(QString::number(r));
+
     return result;
 }

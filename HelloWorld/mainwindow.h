@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -36,22 +36,15 @@
 #include <QCommandLineParser>
 //
 #include <QDir>
+#include <QFileDialog>
+#include "datasheet.h"
+#include "exceldatastruct.h"
 
 namespace Ui {
 class MainWindow;
 }
 
-typedef struct data_struct
-{
-    QString regulator;
-    QString chemical;
-    QString crop;
-    QString phi;
-    QString rate;
-    QVector<double> residues;
-    QString unit;
 
-} DataStruct;
 
 class MainWindow : public QMainWindow
 {
@@ -68,23 +61,39 @@ private:
     QTabWidget *tabWidget;
 //    QWidget *dataPage;
 //    QWidget *modelPage;
+//    DataSheet *viewPage;
+    QGroupBox *viewPage;
     QGroupBox *dataPage;
     QGroupBox *modelPage;
     QGroupBox *recomPage;
+    QGroupBox *resultPage;
     QAction *openAction;
+    QAction *saveDataAction;
+    QAction *aboutMainWindow;
+    QAction *exitAction;
+    QAction *printAction;
 private:
+    // 图像r squared 值
+    double rSquared = 0.0;
     // structs
     DataStruct *data;
+    QVector<DataStruct*> dataVector;
     QString currentPath;
-
+    // 生成菜单和工具栏的Action
+    void createAction();
+    void setupMenuBar();
     void open();
     void addDataPage();
+    void viewData();
     void selectModelPage();
     void recomModelPage();
     void showResultPage();
+
 private:
-    // excel
-    void copyPlot();
+    // copy excel
+//    void copyPlot();
+
+    void makePlot(QString &fileSavePath);
 public slots:
     void onTreeWidgetClicked(QTreeWidgetItem *item, int column);
     void onTabWidgetClosed(int index);
@@ -92,6 +101,16 @@ public slots:
     void onPlotPushButtonClicked();
     void onResiduesTextEditTextChanged();
     void onCalculatePushButtonClicked();
+    void onSelectViewPushButtonClicked();
+    void onReloadViewPushButtonClicked();
+    void onResultReflushPushButtionClicked();
+
+
+    // menu
+    void showAbout();
+    void print();
+    void saveData();
+
 };
 
 #endif // MAINWINDOW_H

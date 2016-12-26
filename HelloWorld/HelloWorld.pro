@@ -15,31 +15,34 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    spreadsheet/printview.cpp \
-    spreadsheet/spreadsheet.cpp \
-    spreadsheet/spreadsheetdelegate.cpp \
-    spreadsheet/spreadsheetitem.cpp \
     polevl.cpp \
     ndtri.cpp \
     ufunction.cpp \
     excel.cpp \
     imageviewer/imageviewer.cpp \
-    model.cpp
+    model.cpp \
+    datasheet.cpp \
+    datasheetdelegate.cpp \
+    datasheetitem.cpp \
+    printview.cpp \
+    resultsheet.cpp
 
 HEADERS  += mainwindow.h \
     newspaper.h \
     reader.h \
     eventlabel.h \
-    spreadsheet/printview.h \
-    spreadsheet/spreadsheet.h \
-    spreadsheet/spreadsheetdelegate.h \
-    spreadsheet/spreadsheetitem.h \
     polevl.h \
     ndtri.h \
     ufunction.h \
     excel.h \
     imageviewer/imageviewer.h \
-    model.h
+    model.h \
+    datasheet.h \
+    datasheetdelegate.h \
+    datasheetitem.h \
+    printview.h \
+    exceldatastruct.h \
+    resultsheet.h
 
 FORMS    += mainwindow.ui
 

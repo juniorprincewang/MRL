@@ -1,4 +1,4 @@
-#include "excel.h"
+﻿#include "excel.h"
 #include <QFile>
 #include <QTextStream>
 #include <QAxObject>
@@ -17,8 +17,9 @@ Excel::Excel()
 
 Excel::~Excel()
 {
-    this->excel->dynamicCall("Quit()");
-    free(this->excel);
+//    this->excel->dynamicCall("Quit(void)");
+    delete this->excel;
+    // 好傻缺，居然写的是free(this->excel); 忘了 new / delete 连用
 }
 
 void Excel::createDoc(const QString& fileName, QAxObject* qObject)
@@ -99,7 +100,7 @@ void Excel::read(const QString &sheetName)
         this->residues = residues;
     }
     work_book->dynamicCall("Close(Boolean)", false);
-//    this->excel->dynamicCall("Quit()");
+    this->excel->dynamicCall("Quit()");
 }
 
 void Excel::import(const QString& fileName)
@@ -134,125 +135,6 @@ void Excel::import(const QString& fileName)
     */
 }
 
-void Excel::savePlot()
-{
-    QAxObject *work_books = this->excel->querySubObject("WorkBooks");
-//    QFileInfo fileInfo(this->pictureSavePath);
-//    QString tmpFile = QString("%1/%2.xls").arg(fileInfo.path()).arg(fileInfo.baseName());
-//    work_books->dynamicCall("Open(const QString&)",  tmpFile);
-    work_books->dynamicCall("Add");
-    QAxObject *workbook = this->excel->querySubObject("ActiveWorkBook");
-//    QAxObject *work_sheets = workbook->querySubObject("Sheets");  //Sheets也可换用WorkSheets
-//    int sheet_count = work_sheets->property("Count").toInt();  //获取工作表数目
-//    QAxObject *worksheet = workbook->querySubObject("Worksheets(String&)", sheetName);
-
-//        QAxObject *work_sheet = work_book->querySubObject("Sheets(const String&)", "Probability Plot");
-//        work_sheet->dynamicCall("Select(void");
-//        QAxObject *chart = work_book->querySubObject("ActiveChart");
-//        chart->dynamicCall("Export(Filename, FilterName)", "D:\\Qt\\PPPPPPPPPPPPPPPP.jpg", "jpg");
-
-//        worksheet->dynamicCall("Select(void)"); // very important
-//        QAxObject *range = worksheet->querySubObject("Range(A1:B7)");
-//        range->dynamicCall("Select (void)");
-    QAxObject *chart = workbook->querySubObject("Charts")->querySubObject("Add");
-//    this->createDoc(QString("D:\\Qt\\chartAPI.html"), chart);
-    QAxObject * series = chart->querySubObject("SeriesCollection");
-    // qDebug() << series->property("Count");   // 3 !
-    series->dynamicCall("NewSeries(void)");
-
-    QAxObject * serie   = series->querySubObject("Item (int)", 1);
-    serie->setProperty("Name", "(Z-score, Ln(residue))");
-    // from worksheet
-//        QAxObject * xvalues = worksheet->querySubObject("Range(D8:D21)");
-//        QAxObject * yvalues = worksheet->querySubObject("Range(C8:C21)");
-//        serie->setProperty("XValues", xvalues->asVariant());
-//        serie->setProperty("Values",  yvalues->asVariant());
-    // from vector
-    QList<QVariant> listXValues, listValues;
-    std::vector<double> ln_residues = Model::getLnVector(this->residues.toStdVector());
-    std::vector<double> zScore = Model::getZScoreVector(this->residues.toStdVector());
-//        listXValues =  zScore.toList();
-//        listValues = ln_residues.toList();
-    for(int i=0; i<ln_residues.size(); i++)
-    {
-        listXValues.push_back(zScore[i]);
-        listValues.push_back(ln_residues[i]);
-    }
-    serie->setProperty("XValues",listXValues);
-    serie->setProperty("Values",listValues);
-    serie->dynamicCall("Select(void)");
-    /* set chart property*/
-    chart->setProperty("Name", "Probability Chart");
-//    xlXYScatter    -4169    Scatter.
-    chart->setProperty("ChartType", -4169);
-    chart->setProperty("HasTitle", true);
-    QAxObject* chartTitle = chart->querySubObject("ChartTitle");
-    chartTitle->setProperty("Text", "Lognormal Probability Plot"); // read-only or does not exist
-    // XlCategoryLabelLevelCustom -2 (&HFFFFFFFE) Indicates literal data in the category labels.
-//    chart->setProperty("CategoryLabelLevel", -2);   // !Exception
-    chart->setProperty("BarShape", 0); // xlBox
-    chart->setProperty("ChartColor", 2);
-    chart->setProperty("DepthPercent", 100);
-    chart->setProperty("DisplayBlanksAs", 0);// lxBox !
-//    chart->setProperty("Elevation", 15);    // Exception
-    chart->setProperty("GapDepth", 150);
-    chart->setProperty("HasDataTable", false);
-    chart->setProperty("HasLegend", true);
-//    chart->setProperty("HeightPercent", 100);   // Exception
-//    chart->setProperty("Perspective", 30);  // Exception
-    chart->setProperty("Rotation", 20);
-//    chart->dynamicCall("SetSeriesNameLevel(int)", -2);
-//    int val = chart->property("SeriesNameLevel").toInt();
-//    qDebug() << QString("SeriesNameLevel = %1").arg(val);
-//    chart->setProperty("SeriesNameLevel", -2);// !xlSeriesNameLevelCustom
-//    val = chart->property("SeriesNameLevel").toInt();
-//    qDebug() << QString("SeriesNameLevel = %1").arg(val);
-    chart->setProperty("Visible", -1);
-    /* set x, y axis property */
-    QAxObject* x_axis = chart->querySubObject("Axes(int)", 1);
-    QAxObject* y_axis = chart->querySubObject("Axes(int)", 2);
-    x_axis->setProperty("HasTitle", true);
-    QAxObject* x_axisTitle = x_axis->querySubObject("AxisTitle");
-    x_axisTitle->setProperty("Text", "Percentiles");
-    x_axis->setProperty("HasMajorGridlines", false);
-    x_axis->setProperty("HasMinorGridlines", false);
-    y_axis->setProperty("HasTitle", true);
-    QAxObject* y_axisTitle = y_axis->querySubObject("AxisTitle");
-    y_axisTitle->setProperty("Text", "Concentrate");
-    y_axis->setProperty("HasMajorGridlines", false);
-    y_axis->setProperty("HasMinorGridlines", false);
-
-//    serie = series->querySubObject("Item (int)", 2);
-//    yvalues = worksheet->querySubObject("Range(C2:C9)");
-//    serie->setProperty("XValues", xvalues->asVariant());
-//    serie->setProperty("Values",  yvalues->asVariant());
-    // 添加趋势线
-    QAxObject *trendLines = serie->querySubObject("Trendlines()");
-    if (trendLines) {
-        trendLines->dynamicCall("Add()");
-        int nbTrendLines = trendLines->property("Count").toInt();
-        QAxObject *trendLine = serie->querySubObject("Trendlines(int)",nbTrendLines);
-        // 设定图标格式为 “散点图”，数字-4132来自 枚举变量 XlTrendlineType  : xlLinear
-        trendLine->setProperty("Type",-4132);       // XlTrendlineType  : xlLinear
-        trendLine->setProperty("Name", this->trendLinesName);
-        trendLine->setProperty("DisplayEquation",true);
-        trendLine->setProperty("DisplayRSquared",true);
-
-        QAxObject *dataLabel = trendLine->querySubObject("DataLabel");
-        QString strFormula = dataLabel->property("Formula").toString();
-        qDebug() << strFormula;         // "y = -9.113ln(x) + 78.016"
-    }
-    // 拷贝图片，参考 https://msdn.microsoft.com/en-us/library/office/ff841052.aspx
-    // xlScreen = 1, xlPicture =-4147
-//        chart->dynamicCall("CopyPicture(Appearance, Format)", 1, -4147); //
-//        workbook->dynamicCall("SaveAs (const QString&)", "D:\\Qt\\a");
-    chart->dynamicCall("Export(Filename, FilterName)", this->pictureSavePath, "jpg");
-
-
-    workbook->dynamicCall("Close (Boolean)", false);
-    this->excel->dynamicCall("Quit (void)");
-}
-
 void Excel::exportPicture()
 {
     QAxObject *work_book = this->excel->querySubObject("ActiveWorkBook");
@@ -270,6 +152,7 @@ void Excel::exportPicture()
         chart->dynamicCall("Export(Filename, FilterName)", "D:\\Qt\\PPPPPPPPPPPPPPPP.jpg", "jpg");
     }
     work_book->dynamicCall("Close(Boolean)", false);
+    this->excel->dynamicCall("Quit (void)");
 }
 
 void Excel::formula(const QString &sheetName )
@@ -466,7 +349,283 @@ int Excel::addChart(const QString& sheetName)
     chart->dynamicCall("CopyPicture(Appearance, Format)", 1, -4147); //
     workbook->dynamicCall("SaveAs (const QString&)", "D:\\Qt\\a");
     workbook->dynamicCall("Close (Boolean)", false);
-    excel->dynamicCall("Quit (void)");
+    this->excel->dynamicCall("Quit (void)");
 
     return 0;
 }
+
+double Excel::savePlot()
+{
+    double rSquaredValue = 0.0;
+    QAxObject *work_books = this->excel->querySubObject("WorkBooks");
+//    QFileInfo fileInfo(this->pictureSavePath);
+//    QString tmpFile = QString("%1/%2.xls").arg(fileInfo.path()).arg(fileInfo.baseName());
+//    work_books->dynamicCall("Open(const QString&)",  tmpFile);
+    work_books->dynamicCall("Add");
+    QAxObject *workbook = this->excel->querySubObject("ActiveWorkBook");
+//    QAxObject *work_sheets = workbook->querySubObject("Sheets");  //Sheets也可换用WorkSheets
+//    int sheet_count = work_sheets->property("Count").toInt();  //获取工作表数目
+//    QAxObject *worksheet = workbook->querySubObject("Worksheets(String&)", sheetName);
+
+//        QAxObject *work_sheet = work_book->querySubObject("Sheets(const String&)", "Probability Plot");
+//        work_sheet->dynamicCall("Select(void");
+//        QAxObject *chart = work_book->querySubObject("ActiveChart");
+//        chart->dynamicCall("Export(Filename, FilterName)", "D:\\Qt\\PPPPPPPPPPPPPPPP.jpg", "jpg");
+
+//        worksheet->dynamicCall("Select(void)"); // very important
+//        QAxObject *range = worksheet->querySubObject("Range(A1:B7)");
+//        range->dynamicCall("Select (void)");
+    QAxObject *chart = workbook->querySubObject("Charts")->querySubObject("Add");
+//    this->createDoc(QString("D:\\Qt\\chartAPI.html"), chart);
+    QAxObject * series = chart->querySubObject("SeriesCollection");
+    // qDebug() << series->property("Count");   // 3 !
+    series->dynamicCall("NewSeries(void)");
+
+    QAxObject * serie   = series->querySubObject("Item (int)", 1);
+    serie->setProperty("Name", "(Z-score, Ln(residue))");
+    // from worksheet
+//        QAxObject * xvalues = worksheet->querySubObject("Range(D8:D21)");
+//        QAxObject * yvalues = worksheet->querySubObject("Range(C8:C21)");
+//        serie->setProperty("XValues", xvalues->asVariant());
+//        serie->setProperty("Values",  yvalues->asVariant());
+    // from vector
+    QList<QVariant> listXValues, listValues;
+    std::vector<double> ln_residues = Model::getLnVector(this->residues.toStdVector());
+    std::vector<double> zScore = Model::getZScoreVector(this->residues.toStdVector());
+//        listXValues =  zScore.toList();
+//        listValues = ln_residues.toList();
+    for(int i=0; i<ln_residues.size(); i++)
+    {
+        listXValues.push_back(zScore[i]);
+        listValues.push_back(ln_residues[i]);
+    }
+    serie->setProperty("XValues",listXValues);
+    serie->setProperty("Values",listValues);
+    serie->dynamicCall("Select(void)");
+    /* set chart property*/
+    chart->setProperty("Name", "Probability Chart");
+//    xlXYScatter    -4169    Scatter.
+    chart->setProperty("ChartType", -4169);
+    chart->setProperty("HasTitle", true);
+    QAxObject* chartTitle = chart->querySubObject("ChartTitle");
+    chartTitle->setProperty("Text", "Lognormal Probability Plot"); // read-only or does not exist
+    // XlCategoryLabelLevelCustom -2 (&HFFFFFFFE) Indicates literal data in the category labels.
+//    chart->setProperty("CategoryLabelLevel", -2);   // !Exception
+    chart->setProperty("BarShape", 0); // xlBox
+    chart->setProperty("ChartColor", 2);
+    chart->setProperty("DepthPercent", 100);
+    chart->setProperty("DisplayBlanksAs", 0);// lxBox !
+//    chart->setProperty("Elevation", 15);    // Exception
+    chart->setProperty("GapDepth", 150);
+    chart->setProperty("HasDataTable", false);
+    chart->setProperty("HasLegend", true);
+//    chart->setProperty("HeightPercent", 100);   // Exception
+//    chart->setProperty("Perspective", 30);  // Exception
+    chart->setProperty("Rotation", 20);
+//    chart->dynamicCall("SetSeriesNameLevel(int)", -2);
+//    int val = chart->property("SeriesNameLevel").toInt();
+//    qDebug() << QString("SeriesNameLevel = %1").arg(val);
+//    chart->setProperty("SeriesNameLevel", -2);// !xlSeriesNameLevelCustom
+//    val = chart->property("SeriesNameLevel").toInt();
+//    qDebug() << QString("SeriesNameLevel = %1").arg(val);
+    chart->setProperty("Visible", -1);
+    /* set x, y axis property */
+    QAxObject* x_axis = chart->querySubObject("Axes(int)", 1);
+    QAxObject* y_axis = chart->querySubObject("Axes(int)", 2);
+    x_axis->setProperty("HasTitle", true);
+    QAxObject* x_axisTitle = x_axis->querySubObject("AxisTitle");
+    x_axisTitle->setProperty("Text", "Percentiles");
+    x_axis->setProperty("HasMajorGridlines", false);
+    x_axis->setProperty("HasMinorGridlines", false);
+    y_axis->setProperty("HasTitle", true);
+    QAxObject* y_axisTitle = y_axis->querySubObject("AxisTitle");
+    y_axisTitle->setProperty("Text", "Concentrate");
+    y_axis->setProperty("HasMajorGridlines", false);
+    y_axis->setProperty("HasMinorGridlines", false);
+
+//    serie = series->querySubObject("Item (int)", 2);
+//    yvalues = worksheet->querySubObject("Range(C2:C9)");
+//    serie->setProperty("XValues", xvalues->asVariant());
+//    serie->setProperty("Values",  yvalues->asVariant());
+    // 添加趋势线
+    QAxObject *trendLines = serie->querySubObject("Trendlines()");
+    if (trendLines) {
+        trendLines->dynamicCall("Add()");
+        int nbTrendLines = trendLines->property("Count").toInt();
+        QAxObject *trendLine = serie->querySubObject("Trendlines(int)",nbTrendLines);
+        // 设定图标格式为 “散点图”，数字-4132来自 枚举变量 XlTrendlineType  : xlLinear
+        trendLine->setProperty("Type",-4132);       // XlTrendlineType  : xlLinear
+        trendLine->setProperty("Name", this->trendLinesName);
+        trendLine->setProperty("DisplayEquation",false);
+        trendLine->setProperty("DisplayRSquared",true);
+
+        QAxObject *dataLabel = trendLine->querySubObject("DataLabel");
+        QString strFormula = dataLabel->property("Formula").toString();
+        qDebug() << "trendLine formula:" << strFormula;         // "y = -9.113ln(x) + 78.016\u000BR2=0.6815"
+        QString rSquared = strFormula.split('=').last();
+        rSquaredValue = rSquared.trimmed().toDouble();
+        trendLine->setProperty("DisplayEquation", true);
+    }
+    // 拷贝图片，参考 https://msdn.microsoft.com/en-us/library/office/ff841052.aspx
+    // xlScreen = 1, xlPicture =-4147
+//        chart->dynamicCall("CopyPicture(Appearance, Format)", 1, -4147); //
+//        workbook->dynamicCall("SaveAs (const QString&)", "D:\\Qt\\a");
+    chart->dynamicCall("Export(Filename, FilterName)", this->pictureSavePath, "jpg");
+
+
+    workbook->dynamicCall("Close (Boolean)", false);
+    this->excel->dynamicCall("Quit (void)");
+    return rSquaredValue;
+}
+
+
+void Excel::saveData(DataStruct* excelData, const QString &fileSavePath, const QString &sheetName)
+{
+    QAxObject *workbooks = this->excel->querySubObject("WorkBooks");
+    QAxObject *workbook;
+    QFile file(fileSavePath);
+    if(!file.exists())
+    {
+        workbooks->dynamicCall("Add"); // 添加一个新的工作簿
+        workbook  = this->excel->querySubObject("ActiveWorkBook");
+        this->excel->setProperty("Caption", "Data Library");
+//        workbook->setProperty("Name", sheetName);
+        // 另存为，需要将filepath张的\转换
+        workbook->dynamicCall("SaveAs(Filename, FileFormat)", QDir::toNativeSeparators(fileSavePath),
+                              -4143);
+        workbook->dynamicCall("Close (Boolean)", false);
+    }
+
+    workbooks->dynamicCall("Open(const QString&)", fileSavePath);
+    workbook  = this->excel->querySubObject("ActiveWorkBook");
+    QAxObject *worksheets = workbook->querySubObject("Sheets");  //Sheets也可换用WorkSheets
+//    this->createDoc(QString("D:\\Qt\\workSheetsAPI.html"), worksheets);
+//    int sheetCount = worksheets->property("Count").toInt();
+//    qDebug() << sheetCount;
+    QAxObject *worksheet = workbook->querySubObject("Sheets(String&)", sheetName);
+    if(NULL == worksheet)
+    {
+        worksheet = worksheets->querySubObject("Add()");
+        worksheet->setProperty("Name", sheetName);
+//        qDebug() << librarySheet->property("Name").toString();
+    }
+
+//    QAxObject *worksheet = workbook->querySubObject("Sheets(const String&)", sheetName);
+
+    QAxObject *used_range = worksheet->querySubObject("UsedRange");
+    QAxObject *columns = used_range->querySubObject("Columns");
+    int used_column = columns->property("Count").toInt();
+    qDebug() <<"save data excel:used_column" << used_column;
+    QAxObject *cell = NULL;
+    if(used_column==1)
+    {
+        cell = worksheet->querySubObject("Cells(int,int)", 1, 1);
+        cell->setProperty("Value", ("Regulator:"));
+        cell = worksheet->querySubObject("Cells(int,int)", 2, 1);
+        cell->setProperty("Value", ("Chemical:"));
+        cell = worksheet->querySubObject("Cells(int,int)", 3, 1);
+        cell->setProperty("Value", ("Crop:"));
+        cell = worksheet->querySubObject("Cells(int,int)", 4, 1);
+        cell->setProperty("Value", ("PHI:"));
+        cell = worksheet->querySubObject("Cells(int,int)", 5, 1);
+        cell->setProperty("Value", ("App. Rate:"));
+        cell = worksheet->querySubObject("Cells(int,int)", 6, 1);
+        cell->setProperty("Value", ("Residues:"));
+    }
+    worksheet->querySubObject("Cells(int, int)", 1, used_column+1)->setProperty("Value", excelData->regulator);
+    worksheet->querySubObject("Cells(int, int)", 2, used_column+1)->setProperty("Value", excelData->chemical);
+    worksheet->querySubObject("Cells(int, int)", 3, used_column+1)->setProperty("Value", excelData->crop);
+    worksheet->querySubObject("Cells(int, int)", 4, used_column+1)->setProperty("Value", excelData->phi);
+    worksheet->querySubObject("Cells(int, int)", 5, used_column+1)->setProperty("Value", excelData->rate);
+    int num = excelData->residues.size();
+    worksheet->querySubObject("Cells(int, int)", 6, used_column+1)->setProperty("Value", num);
+    for(int i=0; i<num; i++)
+    {
+        worksheet->querySubObject("Cells(int, int)", 7+i, used_column+1)->setProperty("Value", excelData->residues[i]);
+    }
+//    QAxObject *column2ed = columns->querySubObject("item(int)", 2);
+
+    qDebug() << worksheet->property("Name").toString();
+
+//    worksheet->dynamicCall("Select(void)"); // very important
+
+    workbook->dynamicCall("Save()");
+    workbook->dynamicCall("Close (Boolean)", false);
+    this->excel->dynamicCall("Quit (void)");
+}
+
+void Excel::createFile(const QString &filepath)
+{
+    QAxObject *workbooks = this->excel->querySubObject("WorkBooks");
+//    this->excel->setProperty("Visible", true);
+    QAxObject *workbook = NULL;
+    QFile file(filepath);
+    if(!file.exists())
+    {
+        workbooks->dynamicCall("Add"); // 添加一个新的工作簿
+        workbook  = this->excel->querySubObject("ActiveWorkBook");
+    //    workbook->dynamicCall("Save()");
+
+        workbook->dynamicCall("SaveAs(Filename, FileFormat)", QDir::toNativeSeparators(filepath),
+                              -4143);
+    }
+    workbook->dynamicCall("Close(Boolean)", false);
+    this->excel->dynamicCall("Quit(void)");
+}
+
+QVector<DataStruct*> Excel::loadData(const QString &fileSavePath, const QString &sheetName)
+{
+    QAxObject *workbooks = this->excel->querySubObject("WorkBooks");
+//    this->excel->setProperty("Visible", false);
+    QAxObject *workbook = NULL;
+    QFile file(fileSavePath);
+    if(!file.exists())
+    {
+        return QVector<DataStruct*>();
+    }
+    workbooks->dynamicCall("Open(const QString&)", fileSavePath);
+    workbook  = this->excel->querySubObject("ActiveWorkBook");
+    QAxObject *worksheets = workbook->querySubObject("Sheets");  //Sheets也可换用WorkSheets
+    QAxObject *worksheet = workbook->querySubObject("Sheets(String&)", sheetName);
+    if(NULL == worksheet)
+    {
+        return QVector<DataStruct*>();
+    }
+
+    QAxObject *used_range = worksheet->querySubObject("UsedRange");
+    QAxObject *columns = used_range->querySubObject("Columns");
+    int used_column = columns->property("Count").toInt();
+    if(used_column==1)
+    {
+        return QVector<DataStruct*>();
+    }
+    QVector<DataStruct*> dataVector;
+    qDebug() << "load data:used_columns" << used_column;
+    for(int col=2; col<=used_column; col++)
+    {
+        DataStruct* excelData = new DataStruct;
+        excelData->regulator = worksheet->querySubObject("Cells(int, int)", 1, col)->property("Value").toString();
+        excelData->chemical = worksheet->querySubObject("Cells(int, int)", 2, col)->property("Value").toString();
+        excelData->crop = worksheet->querySubObject("Cells(int, int)", 3, col)->property("Value").toString();
+        excelData->phi = worksheet->querySubObject("Cells(int, int)", 4, col)->property("Value").toString();
+        excelData->rate = worksheet->querySubObject("Cells(int, int)", 5, col)->property("Value").toString();
+        int num = worksheet->querySubObject("Cells(int, int)", 6, col)->property("Value").toInt();
+        QVector<double> residueVector;
+        for(int i=0; i<num; i++)
+        {
+            double tmp = worksheet->querySubObject("Cells(int, int)", 7+i, col)->property("Value").toDouble();
+            residueVector.push_back(tmp);
+        }
+        excelData->residues = residueVector;
+        dataVector.push_back(excelData);
+    }
+
+    workbook->dynamicCall("Close(Boolean)", false);
+    this->excel->dynamicCall("Quit(void)");
+    return dataVector;
+}
+
+
+
+
+
