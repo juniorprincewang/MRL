@@ -2,6 +2,7 @@
 #include <cmath>
 // for bind2nd
 #include <functional>
+#include <boost/math/distributions/students_t.hpp>
 
 Model::Model()
 {
@@ -56,7 +57,7 @@ std::vector<double> Model::getZScoreVector(const std::vector<double> v)
     return result;
 }
 
-double Model::getMedian(const std::vector<double> v)
+double Model::getMean(const std::vector<double> v)
 {
     double sum = std::accumulate(v.begin(), v.end(), 0.0);
     double mean = sum / v.size();
@@ -76,7 +77,7 @@ double Model::getStdDev(const std::vector<double> v)
 //        this->median = (v.at((this->size-1)/2) + v.at(this->size/2))/2;
     //
 
-    double mean = this->getMedian(v);
+    double mean = this->getMean(v);
     std::vector<double> diff(v.size());
     std::transform(v.begin(), v.end(), diff.begin(),
                    std::bind2nd(std::minus<double>(), mean));
@@ -130,7 +131,7 @@ std::vector<std::pair<double, int> > Model::EUMethodI()
     double afterPrecision = 0.0;
     std::vector<double> v(this->residues);
 
-    double mean = this->getMedian(v);
+    double mean = this->getMean(v);
     double stdDev = this->getStdDev(v);
     std::vector<std::pair<double, int> > result;
     //if(percentile == 0.95)
@@ -218,7 +219,7 @@ std::vector<QString > Model::EUMethodI(bool rounded)
     double afterPrecision = 0.0;
     std::vector<double> v(this->residues);
 
-    double mean = this->getMedian(v);
+    double mean = this->getMean(v);
     double stdDev = this->getStdDev(v);
     std::vector<QString > result;
     //if(percentile == 0.95)
@@ -333,7 +334,7 @@ std::vector<std::pair<double, int> > Model::NAFTA()
     int significantFigure = 0;
     double afterPrecision = 0.0;
 
-    double mean = this->getMedian(v);
+    double mean = this->getMean(v);
     double stdDev = this->getStdDev(v);
     std::vector<std::pair<double, int> > result;
     //if(percentile == 0.95)
@@ -421,7 +422,7 @@ std::vector<QString > Model::NAFTA(bool rounded)
     double afterPrecision = 0.0;
     std::vector<double> v(this->getLnResidues());
 
-    double mean = this->getMedian(v);
+    double mean = this->getMean(v);
     double stdDev = this->getStdDev(v);
     std::vector<QString > result;
     //if(percentile == 0.95)
@@ -518,6 +519,7 @@ std::vector<QString > Model::NAFTA(bool rounded)
     return result;
 }
 
+
 double Model::percentile(std::vector<double> array, double p)
 {
     int count = array.size();
@@ -552,6 +554,67 @@ std::vector<QString > Model::EUMethodII(bool rounded)
 //        qDebug() << "est " << est;
 //        qDebug() << "significantFigure "<< QString::number(est, 'f', significantFigure);
 //        qDebug() << QString::number(afterPrecision, 'f', significantFigure);
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+    }
+    else
+        result.push_back(QString::number(r));
+
+    return result;
+}
+
+std::vector<QString > Model::CaliMethodI(bool rounded)
+{
+    if(this->residues.empty())
+    {
+        qDebug() << "Calling Cali Method I with empty residues!";
+        return std::vector<QString>();
+    }
+    std::vector<double> v(this->residues);
+    double mean = this->getMean(v);
+    double stdDev = this->getStdDev(v);
+    std::vector<QString> result;
+    double r = mean + 3*stdDev;
+    if(rounded)
+    {
+        std::pair<double, int> roundingResult= rounding.lower_bound(r)->second;
+        double precision = roundingResult.first;
+        int significantFigure = roundingResult.second;
+        double afterPrecision = ceil(r, precision);
+        result.push_back(QString::number(afterPrecision, 'f', significantFigure));
+    }
+    else
+        result.push_back(QString::number(r));
+
+    return result;
+}
+
+std::vector<QString > Model::UPLMedian95th(bool rounded)
+{
+    if(this->residues.empty())
+    {
+        qDebug() << "Calling UPLMedian95th Method with empty residues!";
+        return std::vector<QString>();
+    }
+    std::vector<double> v(this->residues);
+    int size = v.size();
+    std::vector<QString> result;
+
+    /*
+     * 参考  https://zh.wikipedia.org/wiki/%E5%AD%A6%E7%94%9Ft-%E5%88%86%E5%B8%83
+     * 这里分双侧和单侧，双侧的90%对应单侧的10%。
+    */
+    boost::math::students_t dist(size-1);
+    double tinv = boost::math::quantile(dist, 0.95);
+    std::sort(v.begin(), v.end());
+    double median = size%2? v[size/2] : (v[size/2-1] + v[size/2])/2;
+    double r = median * std::exp(std::sqrt(ln(2))*(1.645+tinv/std::sqrt(size)));
+
+    if(rounded)
+    {
+        std::pair<double, int> roundingResult= rounding.lower_bound(r)->second;
+        double precision = roundingResult.first;
+        int significantFigure = roundingResult.second;
+        double afterPrecision = ceil(r, precision);
         result.push_back(QString::number(afterPrecision, 'f', significantFigure));
     }
     else

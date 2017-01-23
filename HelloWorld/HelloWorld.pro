@@ -48,3 +48,7 @@ FORMS    += mainwindow.ui
 
 RESOURCES += \
     res.qrc
+
+INCLUDEPATH += C:/Boost/include/boost-1_63
+LIBS += C:/Boost/lib/libboost_regex-vc120-mt-gd-1_63.lib \
+        C:/Boost/lib/libboost_math_tr1-vc120-mt-gd-1_63.lib

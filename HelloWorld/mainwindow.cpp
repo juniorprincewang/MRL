@@ -352,8 +352,8 @@ void MainWindow::onPlotPushButtonClicked()
         QMessageBox::critical(NULL, "Generating Plot Error!", QString("No Data Yet!"));
         return;
     }
-    QString trendLineName = QString("%1_%2_%3_%4").arg(this->data->regulator).arg(this->data->chemical).arg(
-                this->data->crop).arg(this->data->phi);
+    QString trendLineName = QString("%1_%2_%3_%4").arg(this->data->regulator.trimmed()).arg(this->data->chemical.trimmed()).arg(
+                this->data->crop.trimmed()).arg(this->data->phi.trimmed());
 
     QString picturePath = QString("%1/%2.jpg").arg(this->currentPath).arg(trendLineName);
     MainWindow::makePlot(picturePath);
@@ -374,8 +374,8 @@ void MainWindow::makePlot(QString &fileSavePath)
 
     Excel * excel = new Excel();
     excel->residues = this->data->residues;
-    QString trendLineName = QString("%1_%2_%3_%4").arg(this->data->regulator).arg(this->data->chemical).arg(
-                this->data->crop).arg(this->data->phi);
+    QString trendLineName = QString("%1_%2_%3_%4").arg(this->data->regulator.trimmed()).arg(this->data->chemical.trimmed()).arg(
+                this->data->crop.trimmed()).arg(this->data->phi.trimmed());
     excel->trendLinesName = trendLineName;
 
     QDir dir(fileSavePath);
@@ -426,25 +426,25 @@ void MainWindow::onAddPushButtonClicked()
         QMessageBox::critical(NULL, QString("Critical"), QString("Your regulator isn't inserted!"));
         return;
     }
-    data->regulator = QString::fromLocal8Bit(regulator->text().toUtf8());
+    data->regulator = QString::fromLocal8Bit(regulator->text().trimmed().toUtf8());
     QLineEdit *chemical = this->dataPage->findChild<QLineEdit*>("chemical", Qt::FindDirectChildrenOnly);
     if(chemical->text().isEmpty())
     {
         QMessageBox::critical(NULL, QString("Critical"), QString("Your chemical isn't inserted!"));
         return;
     }
-    data->chemical = QString::fromLocal8Bit(chemical->text().toUtf8());
+    data->chemical = QString::fromLocal8Bit(chemical->text().trimmed().toUtf8());
     QLineEdit *crop = this->dataPage->findChild<QLineEdit*>("crop", Qt::FindDirectChildrenOnly);
     if(crop->text().isEmpty())
     {
         QMessageBox::critical(NULL, QString("Critical"), QString("Your crop isn't inserted!"));
         return;
     }
-    data->crop = QString::fromLocal8Bit(crop->text().toUtf8());
+    data->crop = QString::fromLocal8Bit(crop->text().trimmed().toUtf8());
     QLineEdit *phi = this->dataPage->findChild<QLineEdit*>("phi", Qt::FindDirectChildrenOnly);
-    data->phi = QString::fromLocal8Bit(phi->text().toUtf8());
+    data->phi = QString::fromLocal8Bit(phi->text().trimmed().toUtf8());
     QLineEdit *rate = this->dataPage->findChild<QLineEdit*>("rate", Qt::FindDirectChildrenOnly);
-    data->rate = QString::fromLocal8Bit(rate->text().toUtf8());
+    data->rate = QString::fromLocal8Bit(rate->text().trimmed().toUtf8());
     QComboBox *unit = this->dataPage->findChild<QComboBox*>("unit", Qt::FindDirectChildrenOnly);
     if(unit->currentText().isEmpty())
     {
@@ -508,8 +508,8 @@ void MainWindow::onCalculatePushButtonClicked()
     QCheckBox* bRoundedCheckBox = this->modelPage->findChild<QCheckBox*>("Rounded", Qt::FindDirectChildrenOnly);
     bool bRounded = bRoundedCheckBox->isChecked();
 
-    QString trendLineName = QString("%1_%2_%3_%4").arg(this->data->regulator).arg(this->data->chemical).arg(
-                this->data->crop).arg(this->data->phi);
+    QString trendLineName = QString("%1_%2_%3_%4").arg(this->data->regulator.trimmed()).arg(this->data->chemical.trimmed()).arg(
+                this->data->crop.trimmed()).arg(this->data->phi.trimmed());
 
     QString picturePath = QString("%1/%2.jpg").arg(this->currentPath).arg(trendLineName);
     MainWindow::makePlot(picturePath);
@@ -538,12 +538,15 @@ void MainWindow::onCalculatePushButtonClicked()
 //        {
 //            qDebug() << p;
 //        }
+        QString s;
         QString display("5 results of EUI is as follows:\r\n");
-        display+="95th Percentile : "+results[0]+"\r\n";
-        display+="LN 95th Percentile : "+results[1]+"\r\n";
-        display+="99th Percentile : "+results[2]+"\r\n";
-        display+="LN 99th Percentile : "+results[3]+"\r\n";
-        display+="99.9th Percentile : "+results[4]+"\r\n";
+        display+="95th Percentile           : "+results[0] +"\r\n";
+//        display+=s.sprintf("%-30s : %10s\r\n","95th Percentile",results[0]);
+        display+="LN 95th Percentile        : "+results[1]+"\r\n";
+//        display+=s.sprintf("%-30s : %10s\r\n","LN 95th Percentile",results[1]);
+        display+="99th Percentile           : "+results[2]+"\r\n";
+        display+="LN 99th Percentile        : "+results[3]+"\r\n";
+        display+="99.9th Percentile         : "+results[4]+"\r\n";
         QMessageBox::information(NULL, QStringLiteral("结果"), display);
     }
     if(EUII->isChecked())
@@ -556,7 +559,7 @@ void MainWindow::onCalculatePushButtonClicked()
         std::vector<QString> results = model.EUMethodII(bRounded);
 
         QString display("The result of EUII is : ");
-        display+="99th Percentile: "+results[0]+"\r\n";
+        display+="99th Percentile       : "+results[0]+"\r\n";
         QMessageBox::information(NULL, QStringLiteral("结果"), display);
 
 //        for(auto p: results)
@@ -566,9 +569,23 @@ void MainWindow::onCalculatePushButtonClicked()
     }
     if(Cali1->isChecked())
     {
+        std::vector<QString> results = model.CaliMethodI(bRounded);
+
+        QString display("The result of Cali Method I is : ");
+        display+="99th Percentile       : "+results[0]+"\r\n";
+        QMessageBox::information(NULL, QStringLiteral("结果"), display);
     }
     if(Cali2->isChecked())
     {
+        /*
+         *
+         * 暂时将UPLMedian95th放入Cali2中。
+        */
+        std::vector<QString> results = model.UPLMedian95th(bRounded);
+
+        QString display("The result of UCLMedian95th Method is : ");
+        display+="95th Percentile       : "+results[0]+"\r\n";
+        QMessageBox::information(NULL, QStringLiteral("结果"), display);
     }
     if(OECD->isChecked())
     {
@@ -578,11 +595,11 @@ void MainWindow::onCalculatePushButtonClicked()
 //        std::vector<std::pair<double, int> > results = model.NAFTA();
         std::vector<QString > results = model.NAFTA(bRounded);
         QString display("5 results of NAFTA is as follows:\r\n");
-        display+="95th Percentile : "+results[0]+"\r\n";
-        display+="LN 95th Percentile : "+results[1]+"\r\n";
-        display+="99th Percentile : "+results[2]+"\r\n";
-        display+="LN 99th Percentile : "+results[3]+"\r\n";
-        display+="99.9th Percentile : "+results[4]+"\r\n";
+        display+="95th Percentile       : "+results[0]+"\r\n";
+        display+="LN 95th Percentile    : "+results[1]+"\r\n";
+        display+="99th Percentile       : "+results[2]+"\r\n";
+        display+="LN 99th Percentile    : "+results[3]+"\r\n";
+        display+="99.9th Percentile     : "+results[4]+"\r\n";
         QMessageBox::information(NULL, QStringLiteral("结果"), display);
 //        for(auto p: results)
 //        {

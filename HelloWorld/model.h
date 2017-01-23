@@ -260,10 +260,10 @@ public:
     std::vector<std::pair<double, int> > EUMethodI();
     std::vector<QString> EUMethodI(bool rounded);
     std::vector<QString > EUMethodII(bool rounded);
-    double UCLMedian95th();
-    double Mean3SD();     // 加利福尼亚方法，Xbar+3*SD = 均值+3*方差
     std::vector<std::pair<double, int> > NAFTA();   // 95/99 Rule
     std::vector<QString > NAFTA(bool rounded);   // 95/99 Rule
+    std::vector<QString > CaliMethodI(bool rounded);   // 加利福尼亚方法1，即Mean+3SD
+    std::vector<QString > UPLMedian95th(bool rounded); // UPLMedian95th 方法
     //Approximate Shapiro-Francia Normality Test Statistic
     // return
     // - 0  错误;
@@ -279,7 +279,7 @@ private:
     std::vector<double> lnResidues;
     //
     double getStdDev(const std::vector<double>);
-    double getMedian(const std::vector<double>);
+    double getMean(const std::vector<double>);
     double ceil(double, double);
     double percentile(std::vector<double>, double);
     // 运算中间结果

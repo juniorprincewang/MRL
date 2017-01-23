@@ -575,6 +575,10 @@ void Excel::createFile(const QString &filepath)
 
 QVector<DataStruct*> Excel::loadData(const QString &fileSavePath, const QString &sheetName)
 {
+    QVector<DataStruct*> dataVector;
+    try
+    {
+
     QAxObject *workbooks = this->excel->querySubObject("WorkBooks");
 //    this->excel->setProperty("Visible", false);
     QAxObject *workbook = NULL;
@@ -599,7 +603,7 @@ QVector<DataStruct*> Excel::loadData(const QString &fileSavePath, const QString 
     {
         return QVector<DataStruct*>();
     }
-    QVector<DataStruct*> dataVector;
+
     qDebug() << "load data:used_columns" << used_column;
     for(int col=2; col<=used_column; col++)
     {
@@ -622,6 +626,12 @@ QVector<DataStruct*> Excel::loadData(const QString &fileSavePath, const QString 
 
     workbook->dynamicCall("Close(Boolean)", false);
     this->excel->dynamicCall("Quit(void)");
+    }
+    catch(std::exception &e)
+    {
+        qCritical() <<  e.what();
+
+    }
     return dataVector;
 }
 

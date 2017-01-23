@@ -1,4 +1,4 @@
-#include "ufunction.h"
+﻿#include "ufunction.h"
 #include "ndtri.h"
 #include <cfloat>
 #include <algorithm>
@@ -15,7 +15,7 @@ double cdf(double position)
 {
     return 0.5 * erfc(-position * sqrt(0.5));
 }
-// 概率对应的正态分布的分位图
+// 概率对应的正态分布的分位点
 double ppf(double percent)
 {
     return ndtri(percent);

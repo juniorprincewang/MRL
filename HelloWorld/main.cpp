@@ -26,6 +26,10 @@
 // for bind2nd
 #include <functional>
 #include <QTextCodec>
+#include <QDateTime>
+
+#include <boost/regex.hpp>
+#include <boost/math/distributions/students_t.hpp>
 
 #if defined(qApp)
 #undef qApp
@@ -95,11 +99,51 @@ void test_vlookup()
     qDebug() << gFactors.lower_bound(8)->second.first;
 }
 
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    static QMutex mutex;
+    mutex.lock();
+    QString current_date =  QDateTime::currentDateTime().toString(Qt::ISODate);
+
+//    QString current_date_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss ddd");
+//    QString current_date = QString("(%1)").arg(current_date_time);
+    QString message ;
+
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type) {
+    case QtDebugMsg:
+//        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        message = QString("%1, Debug: %2 (%3:%4, %5)\n").arg(current_date).arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
+        break;
+    case QtInfoMsg:
+        message = QString("%1, Info: %2 (%3:%4, %5)\n").arg(current_date).arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
+        break;
+    case QtWarningMsg:
+        message = QString("%1, Warning: %2 (%3:%4, %5)\n").arg(current_date).arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
+        break;
+    case QtCriticalMsg:
+        message = QString("%1, Critical: %2 (%3:%4, %5)\n").arg(current_date).arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
+        break;
+    case QtFatalMsg:
+        message = QString("%1, Fatal: %2 (%3:%4, %5)\n").arg(current_date).arg(localMsg.constData()).arg(context.file).arg(context.line).arg(context.function);
+//        abort();
+    }
+    QFile file("log.txt");
+    file.open(QIODevice::WriteOnly);
+    QTextStream text_stream(&file);
+    text_stream << message << "\r\n";
+    file.flush();
+    file.close();
+    mutex.unlock();
+
+}
+
 int main(int argc, char *argv[])
 {
 //    test_nth_element();
 //    test_vlookup();
-
+//    qDebug() << QDateTime::currentDateTime().toString(Qt::ISODate) ;
+//    qInstallMessageHandler(myMessageOutput);
     QApplication a(argc, argv);
     // 设置字符集
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
@@ -221,5 +265,24 @@ int main(int argc, char *argv[])
 //    }
 //    imageViewer.show();
 
+/*
+    // define a standard normal distribution:
+//    using namespace boost::math;
+    boost::math::normal norm;
+    boost::math::students_t dist(13);
+//    qDebug() << boost::math::cdf(dist, 636.6);
+
+    // 参考  https://zh.wikipedia.org/wiki/%E5%AD%A6%E7%94%9Ft-%E5%88%86%E5%B8%83
+     这里分双侧和单侧，双侧的90%对应单侧的10%。
+
+    qDebug() << boost::math::quantile(dist, 0.95);
+    qDebug() << boost::math::quantile(boost::math::complement(dist, 0.95));
+    // print the value of x for which the complement
+    // of the probability is 0.05:
+    qDebug() << boost::math::quantile(boost::math::complement(norm, 0.05));
+    qDebug() << ppf(1-0.05);
+    qDebug() << boost::math::cdf(norm, 0.0);
+    qDebug() << cdf(0.0);
+*/
     return a.exec();
 }
