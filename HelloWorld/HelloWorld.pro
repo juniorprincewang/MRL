@@ -25,7 +25,13 @@ SOURCES += main.cpp\
     datasheetdelegate.cpp \
     datasheetitem.cpp \
     printview.cpp \
-    resultsheet.cpp
+    resultsheet.cpp \
+    content.cpp \
+    datainsertion.cpp \
+    menu.cpp \
+    analyzelist.cpp \
+    itemlist.cpp \
+    assesslist.cpp
 
 HEADERS  += mainwindow.h \
     newspaper.h \
@@ -42,7 +48,13 @@ HEADERS  += mainwindow.h \
     datasheetitem.h \
     printview.h \
     exceldatastruct.h \
-    resultsheet.h
+    resultsheet.h \
+    content.h \
+    datainsertion.h \
+    menu.h \
+    analyselist.h \
+    itemlist.h \
+    assesslist.h
 
 FORMS    += mainwindow.ui
 

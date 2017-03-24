@@ -9,31 +9,83 @@
 #endif
 #include "printview.h"
 
+#include <QSplitter>
+#include <QListWidget>
+#include "content.h"
+#include "menu.h"
+#include "itemlist.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     // UI setting
     ui->setupUi(this);
-    setWindowTitle(QStringLiteral("食品中农药残留限量制定及风险评估软件"));
+    setWindowTitle(QStringLiteral("农药最大残留限量分析软件"));
+    /*
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    // 顶部布局
+    QHBoxLayout *topLayout = new QHBoxLayout();
+    QPushButton *startButton = new QPushButton(QStringLiteral("开始"), this);
+    topLayout->addStretch();
+    topLayout->addWidget(startButton);
+    */
+    QSplitter *splitterMain = new QSplitter(Qt::Vertical, this);
+    Menu *menu = new Menu(splitterMain);
+    // 下面布局，左右分割窗口
+    QSplitter *splitterLeft = new QSplitter(Qt::Horizontal, splitterMain);
+    ItemList *leftList = new ItemList(splitterLeft);
+    QObject::connect(menu,
+                     static_cast<void (Menu:: *)(int)>(&Menu::changeMenu),
+                     leftList,
+//                     &ItemList::changeListSlot
+                     &ItemList::setCurrentIndex
+                     );
+    /*
+    QListWidget *leftList = new QListWidget(splitterLeft);
+    QListWidgetItem *item = new QListWidgetItem(leftList);
+    QLabel *dataText = new QLabel(QStringLiteral("数据"));
+    leftList->setResizeMode(QListView::Adjust);
+    leftList->addItem(item);
+    leftList->setItemWidget(item, dataText);
+    item->setSizeHint(dataText->sizeHint());
+//    leftList->insertItem(0, data);
+//    leftList->setMaximumWidth(this->width()*0.3);
+    leftList->setSizeAdjustPolicy(QListWidget::AdjustToContents);
+        */
+    Content *content = new Content(splitterLeft);
+    QObject::connect(menu,
+                     static_cast<void (Menu:: *)(int)>(&Menu::welcomeInterface),
+                     content,
+                     &Content::setCurrentIndex
+                     );
+    QObject::connect(leftList,
+                     static_cast<void (ItemList:: *)(int)>(&ItemList::changeListSignal),
+                     content,
+                     &Content::setCurrentIndex
+                     );
+
+    //设置主布局框即水平分割窗的标题
+    splitterLeft->setStretchFactor(1, 3);
+    splitterLeft->setWindowTitle(QStringLiteral("添加"));
+    setCentralWidget(splitterMain);
+
+}
+
+/*
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    // UI setting
+    ui->setupUi(this);
+    setWindowTitle(QStringLiteral("农药最大残留限量分析软件"));
     createAction();
     setupMenuBar();
     statusBar();
 
     QWidget* window = new QWidget(this);
- /*   window->setWindowTitle("Enter your age");
 
-    QSpinBox *spinbox = new QSpinBox(window);
-    QSlider *slider = new QSlider(Qt::Horizontal, window);
-
-    spinbox->setRange(0, 130);
-    slider->setRange(0, 130);
-    void (QSpinBox:: *spinBoxSignal)(int) = &QSpinBox::valueChanged;
-    QObject::connect(spinbox, spinBoxSignal, slider, &QSlider::setValue);
-    void (QSlider:: *sliderSignal)(int) = &QSlider::valueChanged;
-    QObject::connect(slider, sliderSignal, spinbox, &QSpinBox::setValue);
-    spinbox->setValue(30);
-*/
     treeWidget = new QTreeWidget(window);
     QStringList headers;
     headers << "Name" ;
@@ -91,6 +143,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->currentPath = QString("%1/%2").arg(QDir::currentPath()).arg("MRL");
     qDebug() << this->currentPath;
 }
+*/
 
 void MainWindow::createAction()
 {

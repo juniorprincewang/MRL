@@ -38,6 +38,7 @@
 
 
 
+
 class Sleeper : public QThread
 {
 public:
@@ -239,7 +240,7 @@ int main(int argc, char *argv[])
 
     // main process
 //    CommonHelper::setStyle(":/qss/style");
-    QPixmap pixmap(":/images/doc-open");
+    QPixmap pixmap(":/images/startup");
     QSplashScreen* splash = new QSplashScreen(pixmap);
 
     splash->show();

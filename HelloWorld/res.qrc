@@ -7,6 +7,9 @@
         <file alias="branch-more">stylesheet/stylesheet-branch-more.png</file>
         <file alias="branch-open">stylesheet/stylesheet-branch-open.png</file>
         <file alias="vline">stylesheet/stylesheet-vline.png</file>
+        <file alias="background">pic/BACKGROUND.png</file>
+        <file alias="startup">pic/STARTUP.png</file>
+        <file alias="welcome">welcome.png</file>
     </qresource>
     <qresource prefix="/qss">
         <file alias="style">style.qss</file>
