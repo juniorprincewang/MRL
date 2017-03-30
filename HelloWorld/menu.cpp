@@ -25,19 +25,22 @@ Menu::Menu(QWidget *parent)
 void Menu::analyseButtonClick()
 {
     emit changeMenu(1);
+    emit changeContentInterface(2);
 }
 
 void Menu::assessButtonClick()
 {
     emit changeMenu(2);
+    emit changeContentInterface(2);
 }
 
 void Menu::startButtonClick()
 {
     emit changeMenu(0);
-    emit welcomeInterface(0);
+    emit changeContentInterface(0);
 }
 void Menu::helpButtonClick()
 {
     emit changeMenu(3);
+    emit changeContentInterface(1);
 }

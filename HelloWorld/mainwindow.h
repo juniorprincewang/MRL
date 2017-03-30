@@ -1,4 +1,5 @@
-﻿#ifndef MAINWINDOW_H
+﻿#pragma execution_character_set("utf-8")
+#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -39,6 +40,7 @@
 #include <QFileDialog>
 #include "datasheet.h"
 #include "exceldatastruct.h"
+
 
 
 namespace Ui {

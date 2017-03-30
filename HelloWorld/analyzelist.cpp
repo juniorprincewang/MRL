@@ -52,38 +52,38 @@ void AnalyseList::onTreeWidgetClicked(QTreeWidgetItem *item, int column)
 //    int tcount = ptreeWidget->topLevelItemCount();
     int itemIndex = ptreeWidget->indexOfTopLevelItem(parent);
 //    QMessageBox::about(NULL, QString("item"), QString().sprintf("%d, index = %d", col, itemIndex));
-    qDebug() << QString("col = %1, index = %2").arg(col).arg(itemIndex);
+//    qDebug() << QString("col = %1, index = %2").arg(col).arg(itemIndex);
     switch(itemIndex)
     {
     // 数据
     case 0:
         if(col ==0 )
         {
-            qDebug() << QStringLiteral("新建数据");
-            emit changeContent(1);
+//            qDebug() << QStringLiteral("新建数据");
+            emit changeContent(3);
         }
         else if(col == 1)
         {
-            qDebug() << QStringLiteral("打开数据");
-            emit changeContent(2);
+//            qDebug() << QStringLiteral("查看数据");
+            emit changeContent(4);
         }
         break;
 //     代谢消解
     case 1:
         if(col == 0)
         {
-            qDebug() << QStringLiteral("数据定义");
-            emit changeContent(3);
+//            qDebug() << QStringLiteral("数据定义");
+            emit changeContent(10);
         }
         else if(col == 1)
         {
-            qDebug() << QStringLiteral("消解图");
-            emit changeContent(4);
+//            qDebug() << QStringLiteral("消解图");
+            emit changeContent(9);
         }
         else if(col == 2)
         {
-            qDebug() << QStringLiteral("结果");
-            emit changeContent(5);
+//            qDebug() << QStringLiteral("结果");
+            emit changeContent(8);
         }
         break;
 //    残留限量
@@ -91,18 +91,18 @@ void AnalyseList::onTreeWidgetClicked(QTreeWidgetItem *item, int column)
 
         if(col == 0)
         {
-            qDebug() << QStringLiteral("数据定义");
-            emit changeContent(6);
+//            qDebug() << QStringLiteral("数据定义");
+            emit changeContent(5);
         }
         else if(col == 1)
         {
-            qDebug() << QStringLiteral("QQ图分析");
-            emit changeContent(7);
+//            qDebug() << QStringLiteral("QQ图分析");
+            emit changeContent(6);
         }
         else if(col == 2)
         {
-            qDebug() << QStringLiteral("残留分析");
-            emit changeContent(8);
+//            qDebug() << QStringLiteral("残留分析");
+            emit changeContent(7);
         }
         break;
     default:

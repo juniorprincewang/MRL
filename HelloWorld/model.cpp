@@ -85,6 +85,40 @@ double Model::getStdDev(const std::vector<double> v)
     return std::sqrt(sq_sum / (v.size()-1));
 }
 
+double Model::getMedian(const std::vector<double> vector)
+{
+    std::vector<double> v(vector.begin(), vector.end());
+    std::sort(v.begin(), v.end());
+    int size = v.size();
+    double median = size%2? v[size/2] : (v[size/2-1] + v[size/2])/2;
+    return median;
+}
+
+double Model::getMode(const std::vector<double> unSortedVector)
+{
+    std::vector<double> array(unSortedVector.begin(), unSortedVector.end());
+    std::sort(array.begin(), array.end());
+    int counter = 1;
+    int max = 0;
+    double mode = array[0];
+    int size = array.size();
+    for (int pass = 0; pass < size - 1; pass++)
+    {
+        if ( array[pass] == array[pass+1] )
+        {
+            counter++;
+            if ( counter > max )
+            {
+                max = counter;
+                mode = array[pass];
+            }
+        }
+        else
+            counter = 1; // reset counter.
+    }
+    return mode;
+}
+
 std::vector<double> Model::getLnResidues()
 {
     if(this->lnResidues.empty())

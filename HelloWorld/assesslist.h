@@ -1,4 +1,5 @@
-﻿#ifndef ASSESSLIST_H
+﻿#pragma execution_character_set("utf-8")
+#ifndef ASSESSLIST_H
 #define ASSESSLIST_H
 #include <QTreeWidget>
 

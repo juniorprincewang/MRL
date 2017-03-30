@@ -31,7 +31,15 @@ SOURCES += main.cpp\
     menu.cpp \
     analyzelist.cpp \
     itemlist.cpp \
-    assesslist.cpp
+    assesslist.cpp \
+    qexcel.cpp \
+    datalist.cpp \
+    figureinterface.cpp \
+    dataanalysis.cpp \
+    residueanalysis.cpp \
+    digestionanalysis.cpp \
+    qqfigureinterface.cpp \
+    digestionfigureinterface.cpp
 
 HEADERS  += mainwindow.h \
     newspaper.h \
@@ -54,7 +62,16 @@ HEADERS  += mainwindow.h \
     menu.h \
     analyselist.h \
     itemlist.h \
-    assesslist.h
+    assesslist.h \
+    qexcel.h \
+    datalist.h \
+    publicdata.h \
+    figureinterface.h \
+    dataanalysis.h \
+    digestionanalysis.h \
+    residueanalysis.h \
+    qqfigureinterface.h \
+    digestionfigureinterface.h
 
 FORMS    += mainwindow.ui
 

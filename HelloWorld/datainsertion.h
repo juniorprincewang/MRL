@@ -1,4 +1,5 @@
-﻿#ifndef DATAINSERTION_H
+﻿#pragma execution_character_set("utf-8")
+#ifndef DATAINSERTION_H
 #define DATAINSERTION_H
 /*
  * 数据新建Panel
@@ -17,23 +18,14 @@
 #include <QMap>
 #include <QMessageBox>
 #include <QList>
+#include <QFile>
+#include <QDir>
+#include <QAxObject>
+#include <QDebug>
+#include "qexcel.h"
+#include "model.h"
+#include "publicdata.h"
 
-struct PesticideData
-{
-    QString chineseName;
-    QString englishName;
-    QString chemicalName;
-    QString molecular;
-    QString edible;
-    QString nonedible;
-    QVector<QString > additive;
-    QString method;
-    QString frequency;
-    QString dosage;
-    QVector<QString> location;
-    QMap<int, QVector<double>> residues;
-
-};
 
 
 class DataInsertion: public QWidget
@@ -102,6 +94,13 @@ public slots:
     void preview();
     void save();
     void cancel();
+private:
+    QString xlsFilePath;
+    void saveToExcel(PesticideData*, QString);
+    void testSaveToExcel();
+    void generateExcelTemplate(QString xlsFilePath);
+    void preset();
+    bool checkValidation();
 };
 
 

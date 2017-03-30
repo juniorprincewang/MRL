@@ -277,16 +277,15 @@ public:
     std::vector<double> getLnResidues();
 private:
     std::vector<double> lnResidues;
+public:
     //
-    double getStdDev(const std::vector<double>);
-    double getMean(const std::vector<double>);
+    double getStdDev(const std::vector<double>);    // 标准方差
+    double getMean(const std::vector<double>);  // 平均值
     double ceil(double, double);
     double percentile(std::vector<double>, double);
-    // 运算中间结果
-    double average;
-    double median;
-    double max_value;
-    double min_value;
+    double getMedian(const std::vector<double>);    // 中值
+    double getMode(const std::vector<double>);  // 众数
+
 };
 
 

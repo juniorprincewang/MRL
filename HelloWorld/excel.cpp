@@ -354,6 +354,114 @@ int Excel::addChart(const QString& sheetName)
     return 0;
 }
 
+QVector<QString> Excel::makeMetabolicPlot()
+{
+    double rSquaredValue = 0.0;
+    QVector<QString> strFormula;
+    QAxObject *work_books = this->excel->querySubObject("WorkBooks");
+    work_books->dynamicCall("Add");
+    QAxObject *workbook = this->excel->querySubObject("ActiveWorkBook");
+    QAxObject *chart = workbook->querySubObject("Charts")->querySubObject("Add");
+    QAxObject * series = chart->querySubObject("SeriesCollection");
+    series->dynamicCall("NewSeries(void)");
+    QAxObject * serie   = series->querySubObject("Item (int)", 1);
+    serie->setProperty("Name", "(时间, 浓度)");
+    QList<QVariant> listXValues, listValues;
+//    std::vector<int> x={10, 14, 21, 30, 45, 60};
+//    std::vector<double> y = {27.5, 24.8, 21.6, 20.3, 13.7, 12.2};
+//    for(int i=0; i<x.size(); i++)
+//    {
+//        listXValues.push_back(x[i]);
+//        listValues.push_back(y[i]);
+//    }
+    QMap<int, double>::const_iterator i = this->digestion.constBegin();
+    for(; i!= this->digestion.constEnd(); i++)
+    {
+        listXValues.push_back(i.key());
+        listValues.push_back(i.value());
+    }
+    serie->setProperty("XValues",listXValues);
+    serie->setProperty("Values",listValues);
+    serie->dynamicCall("Select(void)");
+    /* set chart property*/
+    chart->setProperty("Name", "代谢消解图");
+//    xlXYScatter    -4169    Scatter.
+    chart->setProperty("ChartType", -4169);
+    chart->setProperty("HasTitle", true);
+    QAxObject* chartTitle = chart->querySubObject("ChartTitle");
+    chartTitle->setProperty("Text", "代谢消解图"); // read-only or does not exist
+    // XlCategoryLabelLevelCustom -2 (&HFFFFFFFE) Indicates literal data in the category labels.
+//    chart->setProperty("CategoryLabelLevel", -2);   // !Exception
+    chart->setProperty("BarShape", 0); // xlBox
+    chart->setProperty("ChartColor", 2);
+    chart->setProperty("DepthPercent", 100);
+    chart->setProperty("DisplayBlanksAs", 0);// lxBox !
+//    chart->setProperty("Elevation", 15);    // Exception
+    chart->setProperty("GapDepth", 150);
+    chart->setProperty("HasDataTable", false);
+    chart->setProperty("HasLegend", true);
+//    chart->setProperty("HeightPercent", 100);   // Exception
+//    chart->setProperty("Perspective", 30);  // Exception
+    chart->setProperty("Rotation", 20);
+    chart->setProperty("Visible", -1);
+    /* set x, y axis property */
+    QAxObject* x_axis = chart->querySubObject("Axes(int)", 1);
+    QAxObject* y_axis = chart->querySubObject("Axes(int)", 2);
+    x_axis->setProperty("HasTitle", true);
+    QAxObject* x_axisTitle = x_axis->querySubObject("AxisTitle");
+    x_axisTitle->setProperty("Text", "时间");
+    x_axis->setProperty("HasMajorGridlines", false);
+    x_axis->setProperty("HasMinorGridlines", false);
+    y_axis->setProperty("HasTitle", true);
+    QAxObject* y_axisTitle = y_axis->querySubObject("AxisTitle");
+    y_axisTitle->setProperty("Text", "浓度（ug/kg）");
+    y_axis->setProperty("HasMajorGridlines", false);
+    y_axis->setProperty("HasMinorGridlines", false);
+
+//    serie = series->querySubObject("Item (int)", 2);
+//    yvalues = worksheet->querySubObject("Range(C2:C9)");
+//    serie->setProperty("XValues", xvalues->asVariant());
+//    serie->setProperty("Values",  yvalues->asVariant());
+    // 添加趋势线
+    QAxObject *trendLines = serie->querySubObject("Trendlines()");
+    if (trendLines) {
+        trendLines->dynamicCall("Add()");
+        int nbTrendLines = trendLines->property("Count").toInt();
+        QAxObject *trendLine = serie->querySubObject("Trendlines(int)",nbTrendLines);
+//        xlExponential        5        Uses an equation to calculate the least squares fit through points, for example, y=ab^x .
+        trendLine->setProperty("Type",5);       // XlTrendlineType  : xlExponential
+//        trendLine->setProperty("Name", this->trendLinesName);
+        trendLine->setProperty("DisplayEquation",false);// y = 1879.051 e-0.025 x
+        trendLine->setProperty("DisplayRSquared",true); // R² = 0.758
+        QAxObject *dataLabel = trendLine->querySubObject("DataLabel");
+        QString rSquareFormula = dataLabel->property("Formula").toString();
+//        qDebug() << "trendLine RSquare value:" << rSquareFormula;
+        trendLine->setProperty("DisplayEquation",true);// y = 1879.051 e-0.025 x
+        trendLine->setProperty("DisplayRSquared",false); // R² = 0.758
+        QString equationFormula = dataLabel->property("Formula").toString();
+//        qDebug() << "trendLine equation is: " << equationFormula;
+        strFormula.push_back(equationFormula);
+
+        trendLine->setProperty("DisplayEquation", true);
+        strFormula.push_back(rSquareFormula);
+        /*
+        trendLine->setProperty("DisplayEquation",true);// y = 1879.051 e-0.025 x
+        trendLine->setProperty("DisplayRSquared",true); // R² = 0.758
+        strFormula = dataLabel->property("Text").toString();
+        qDebug() << strFormula;
+        */
+    }
+    // 拷贝图片，参考 https://msdn.microsoft.com/en-us/library/office/ff841052.aspx
+    // xlScreen = 1, xlPicture =-4147
+//        chart->dynamicCall("CopyPicture(Appearance, Format)", 1, -4147); //
+//        workbook->dynamicCall("SaveAs (const QString&)", "D:\\Qt\\a");
+    chart->dynamicCall("Export(Filename, FilterName)", this->pictureSavePath, "jpg");
+
+    workbook->dynamicCall("Close (Boolean)", false);
+    this->excel->dynamicCall("Quit (void)");
+    return strFormula;
+}
+
 double Excel::savePlot()
 {
     double rSquaredValue = 0.0;
@@ -464,6 +572,7 @@ double Excel::savePlot()
         qDebug() << "trendLine formula:" << strFormula;         // "y = -9.113ln(x) + 78.016\u000BR2=0.6815"
         QString rSquared = strFormula.split('=').last();
         rSquaredValue = rSquared.trimmed().toDouble();
+        qDebug() << "rSquared = " << rSquaredValue;
         trendLine->setProperty("DisplayEquation", true);
     }
     // 拷贝图片，参考 https://msdn.microsoft.com/en-us/library/office/ff841052.aspx

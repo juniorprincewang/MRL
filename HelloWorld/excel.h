@@ -22,6 +22,7 @@ public:
     QString trendLinesName;     // 趋势线名称，由输入变量组成
     QString pictureSavePath;    // 图片存储路径
     QString fileSavePath;    // 图片存储路径
+    QMap<int, double> digestion;
 public:
     Excel();
     ~Excel();
@@ -30,6 +31,8 @@ public:
     void exportPicture();
     // 返回 R-squared 值
     double savePlot();
+    // 返回 R-squared 值
+    QVector<QString> makeMetabolicPlot();
     void formula(const QString& sheetName);
     int addChart(const QString& sheetName);
     void saveData(DataStruct *excelData, const QString &fileSavePath, const QString &sheetName);

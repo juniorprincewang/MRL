@@ -1,4 +1,5 @@
-﻿#ifndef MENU_H
+﻿#pragma execution_character_set("utf-8")
+#ifndef MENU_H
 #define MENU_H
 #include <QLayout>
 #include <QPushButton>
@@ -22,7 +23,8 @@ public slots:
     void helpButtonClick();
 signals:
     void changeMenu(int);
-    void welcomeInterface(int);
+    void changeContentInterface(int);
+
 };
 
 #endif // MENU_H

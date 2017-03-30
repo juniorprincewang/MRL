@@ -14,6 +14,7 @@
 #include "content.h"
 #include "menu.h"
 #include "itemlist.h"
+#include "publicdata.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -55,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
         */
     Content *content = new Content(splitterLeft);
     QObject::connect(menu,
-                     static_cast<void (Menu:: *)(int)>(&Menu::welcomeInterface),
+                     static_cast<void (Menu:: *)(int)>(&Menu::changeContentInterface),
                      content,
                      &Content::setCurrentIndex
                      );
@@ -64,12 +65,23 @@ MainWindow::MainWindow(QWidget *parent) :
                      content,
                      &Content::setCurrentIndex
                      );
+//    QObject::connect(content,
+//                     static_cast<void (ItemList:: *)(int)>(&ItemList::changeListSignal),
+//                     content,
+//                     &Content::setCurrentIndex
+//                     );
+
 
     //设置主布局框即水平分割窗的标题
     splitterLeft->setStretchFactor(1, 3);
     splitterLeft->setWindowTitle(QStringLiteral("添加"));
     setCentralWidget(splitterMain);
-
+    // 在当前路径下生成MRL文件夹
+    QDir dir(QDir::currentPath());
+    if(!dir.mkdir(QString("MRL")))
+        qDebug() << "the directory already exists or something wrong!";
+    this->currentPath = QString("%1/%2").arg(QDir::currentPath()).arg("MRL");
+    qDebug() << this->currentPath;
 }
 
 /*
