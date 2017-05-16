@@ -1,8 +1,5 @@
 ﻿#include "itemlist.h"
-#include <QMessageBox>
-#include <QPushButton>
-#include <QLabel>
-#include <QDebug>
+
 
 ItemList::ItemList(QWidget *parent)
     :QStackedWidget(parent)
@@ -23,10 +20,10 @@ ItemList::ItemList(QWidget *parent)
                      static_cast<void (AnalyseList:: *)(int)> (&AnalyseList::changeContent),
                      this,
                      &ItemList::changeListSlot);
-//    QObject::connect(assessList,
-//                     static_cast<void (AssessList:: *)(int)> (&AssessList::changeContent),
-//                     this,
-//                     &ItemList::changeListSlot);
+    QObject::connect(assessList,
+                     static_cast<void (AssessList:: *)(int)> (&AssessList::changeContent),
+                     this,
+                     &ItemList::changeListSlot);
 }
 
 void ItemList::changeListSlot(int index)

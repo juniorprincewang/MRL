@@ -32,13 +32,13 @@
 #include <QPushButton>
 #include <QCheckBox>
 #include <QVBoxLayout>
+#include <QScrollArea>
 // for imageviewer
 #include "imageviewer/imageviewer.h"
 #include <QCommandLineParser>
 //
 #include <QDir>
 #include <QFileDialog>
-#include "datasheet.h"
 #include "exceldatastruct.h"
 
 
@@ -87,7 +87,7 @@ private:
     void setupMenuBar();
     void open();
     void addDataPage();
-    void viewData();
+//    void viewData();
     void selectModelPage();
     void recomModelPage();
     void showResultPage();
@@ -105,7 +105,7 @@ public slots:
     void onResiduesTextEditTextChanged();
     void onCalculatePushButtonClicked();
     void onSelectViewPushButtonClicked();
-    void onReloadViewPushButtonClicked();
+//    void onReloadViewPushButtonClicked();
     void onResultReflushPushButtionClicked();
 
 

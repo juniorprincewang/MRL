@@ -32,5 +32,60 @@ AssessList::AssessList(QWidget *parent)
 
 void AssessList::onTreeWidgetClicked(QTreeWidgetItem *item, int column)
 {
+    QTreeWidgetItem* parent= item->parent();
+    if(parent == NULL)
+        return;
+    int col = parent->indexOfChild(item);
+    QTreeWidget* ptreeWidget= parent->treeWidget();
+    if(ptreeWidget == NULL)
+        return;
+    int itemIndex = ptreeWidget->indexOfTopLevelItem(parent);
+//    QMessageBox::about(NULL, QString("item"), QString().sprintf("%d, index = %d", col, itemIndex));
+//    qDebug() << QString("col = %1, index = %2").arg(col).arg(itemIndex);
+    switch(itemIndex)
+    {
+    // 数据
+    case 0:
+        if(col ==0 )
+        {
+//            qDebug() << QStringLiteral("新建数据");
+            emit changeContent(11);
+        }
+        else if(col == 1)
+        {
+//            qDebug() << QStringLiteral("查看数据");
+            emit changeContent(4);
+        }
+        break;
+//  急性评估
+    case 1:
+        if(col == 0)
+        {
+//            qDebug() << QStringLiteral("数据定义");
+            emit changeContent(12);
+        }
+        else if(col == 1)
+        {
+//            qDebug() << QStringLiteral("评估结果");
+            emit changeContent(13);
+        }
+        break;
+//    慢性评估
+    case 2:
 
+        if(col == 0)
+        {
+//            qDebug() << QStringLiteral("数据定义");
+            emit changeContent(14);
+        }
+        else if(col == 1)
+        {
+//            qDebug() << QStringLiteral("评估结果");
+            emit changeContent(15);
+        }
+        break;
+    default:
+        qDebug() << "add error page";
+        break;
+    }
 }

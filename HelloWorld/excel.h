@@ -29,8 +29,10 @@ public:
     void import(const QString &fileName);
     void read(const QString& sheetName);
     void exportPicture();
-    // 返回 R-squared 值
+    // 保存对数正态分布图像，返回 R-squared 值
     double savePlot();
+    // 保存正态分布图像
+    double saveNormalityPlot();
     // 返回 R-squared 值
     QVector<QString> makeMetabolicPlot();
     void formula(const QString& sheetName);

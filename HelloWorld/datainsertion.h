@@ -22,6 +22,7 @@
 #include <QDir>
 #include <QAxObject>
 #include <QDebug>
+#include <QScrollArea>
 #include "qexcel.h"
 #include "model.h"
 #include "publicdata.h"
@@ -47,14 +48,10 @@ private:
     QLabel *molecular;
     QLineEdit *molecularText;
     // 作用对象
-    QGridLayout *objectLayout;
-    QLabel *object;
-    QLabel *ediblePart;
+    QWidget *object;
+    QVBoxLayout *objectLayout;
     QLineEdit *ediblePartText;
-    QLabel *nonEdiblePart;
     QLineEdit *nonEdiblePartText;
-    QLabel *additivePart;
-    QPushButton *additivePartButton;
     QList<QLineEdit*>additivePartList;
     // 实验方式
     QGridLayout *methodLayout;
@@ -66,20 +63,13 @@ private:
     QLabel *dosage;
     QLineEdit *dosageText;
     // 作用地点
-    QGridLayout *locationLayout;
-    QLabel *location;
-    QPushButton *locationButton;
+    QWidget *location;
+    QVBoxLayout *locationLayout;
     QList<QLineEdit *> locationList;
     // 残留水平
-    QGridLayout *residueLayout;
-    QLabel *residueLevel;
-//    QLabel *phi;
-//    QLineEdit *phiText;
-//    QLabel *residue;
-//    QTextEdit *residueText;
-    QList<QLineEdit*> phiList;
-    QList<QTextEdit*> residueList;
-    QPushButton *addPhiButton;
+    QWidget *residue;
+    QVBoxLayout *residueLayout;
+
     // 按钮
     QHBoxLayout *buttonLayout;
     QPushButton *previewButton;
@@ -89,8 +79,11 @@ private:
     QVBoxLayout *mainLayout;
 public slots:
     void addAdditivePart();
+    void deleteAdditivePart();
     void addLocationText();
+    void deleteLocationText();
     void addPhi();
+    void deletePhi();
     void preview();
     void save();
     void cancel();

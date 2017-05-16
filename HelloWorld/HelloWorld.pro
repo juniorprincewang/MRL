@@ -21,9 +21,6 @@ SOURCES += main.cpp\
     excel.cpp \
     imageviewer/imageviewer.cpp \
     model.cpp \
-    datasheet.cpp \
-    datasheetdelegate.cpp \
-    datasheetitem.cpp \
     printview.cpp \
     resultsheet.cpp \
     content.cpp \
@@ -39,7 +36,13 @@ SOURCES += main.cpp\
     residueanalysis.cpp \
     digestionanalysis.cpp \
     qqfigureinterface.cpp \
-    digestionfigureinterface.cpp
+    digestionfigureinterface.cpp \
+    assessdatainsertion.cpp \
+    assessanalysis.cpp \
+    spreadsheet.cpp \
+    spreadsheetitem.cpp \
+    spreadsheetdelegate.cpp \
+    datasheet.cpp
 
 HEADERS  += mainwindow.h \
     newspaper.h \
@@ -51,9 +54,6 @@ HEADERS  += mainwindow.h \
     excel.h \
     imageviewer/imageviewer.h \
     model.h \
-    datasheet.h \
-    datasheetdelegate.h \
-    datasheetitem.h \
     printview.h \
     exceldatastruct.h \
     resultsheet.h \
@@ -71,7 +71,13 @@ HEADERS  += mainwindow.h \
     digestionanalysis.h \
     residueanalysis.h \
     qqfigureinterface.h \
-    digestionfigureinterface.h
+    digestionfigureinterface.h \
+    assessdatainsertion.h \
+    assessanalysis.h \
+    spreadsheet.h \
+    spreadsheetitem.h \
+    spreadsheetdelegate.h \
+    datasheet.h
 
 FORMS    += mainwindow.ui
 
@@ -80,4 +86,5 @@ RESOURCES += \
 
 INCLUDEPATH += C:/Boost/include/boost-1_63
 LIBS += C:/Boost/lib/libboost_regex-vc120-mt-gd-1_63.lib \
-        C:/Boost/lib/libboost_math_tr1-vc120-mt-gd-1_63.lib
+        C:/Boost/lib/libboost_math_tr1-vc120-mt-gd-1_63.lib \
+        C:/Boost/lib/libboost_regex-vc120-mt-1_63.lib

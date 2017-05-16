@@ -43,39 +43,52 @@ DataInsertion::DataInsertion(QWidget *parent):
     pesticideLayout->setColumnStretch(2, 3);
 
     // 作用对象
-    object = new QLabel(QStringLiteral("作用对象"), this);
-    ediblePart = new QLabel(QStringLiteral("可食用部分"), this);
-    ediblePartText = new QLineEdit(this);
-    nonEdiblePart = new QLabel(QStringLiteral("不可食用部分"), this);
-    nonEdiblePartText = new QLineEdit(this);
-    QLineEdit *additivePartText = new QLineEdit(this);
-    additivePartList<<additivePartText;
-    additivePartButton = new QPushButton(QStringLiteral("添加其他"), this);
-    objectLayout = new QGridLayout();
-    objectLayout->setMargin(10);
-    objectLayout->setSpacing(10);
-    objectLayout->addWidget(object, 0, 0);
-    objectLayout->addWidget(ediblePart, 1, 1);
-    objectLayout->addWidget(ediblePartText, 1, 2);
-    objectLayout->addWidget(nonEdiblePart, 2, 1);
-    objectLayout->addWidget(nonEdiblePartText, 2, 2);
-    objectLayout->addWidget(additivePartButton, 3, 1);
-    objectLayout->addWidget(additivePartText, 3, 2);
-    objectLayout->setColumnStretch(0, 1);
-    objectLayout->setColumnStretch(1, 1);
-    objectLayout->setColumnStretch(2, 3);
-    QObject::connect(additivePartButton, &QPushButton::clicked, this, &DataInsertion::addAdditivePart);
+    object = new QWidget(this);
+    objectLayout = new QVBoxLayout();
+    object->setLayout(objectLayout);
+    QGridLayout *baseLayout = new QGridLayout();
+    QLabel *objectTopLabel = new QLabel(QString("作用对象"), object);
+    QLabel *ediblePart = new QLabel(QString("可食用部分"), object);
+    ediblePartText = new QLineEdit(object);
+    QLabel *nonEdiblePart = new QLabel(QString("不可食用部分"), object);
+    nonEdiblePartText = new QLineEdit(object);
+    QWidget *otherWidget = new QWidget(object);
+    otherWidget->setObjectName("AddictivePart");
+    QGridLayout *otherLayout = new QGridLayout();
+    otherWidget->setLayout(otherLayout);
+    QLabel *otherLabel = new QLabel(QString("其他部分"), otherWidget);
+    QPushButton *addPartButton = new QPushButton(QString("添加其他"), otherWidget);
+    QLineEdit *additivePartText = new QLineEdit(otherWidget);
+    additivePartText->setObjectName("addictive");
+
+    baseLayout->setMargin(10);
+    baseLayout->setSpacing(10);
+    baseLayout->addWidget(objectTopLabel, 0, 0);
+    baseLayout->addWidget(ediblePart, 1, 1);
+    baseLayout->addWidget(ediblePartText, 1, 2);
+    baseLayout->addWidget(nonEdiblePart, 2, 1);
+    baseLayout->addWidget(nonEdiblePartText, 2, 2);
+    baseLayout->setColumnStretch(0, 1);
+    baseLayout->setColumnStretch(1, 1);
+    baseLayout->setColumnStretch(2, 3);
+    objectLayout->addLayout(baseLayout);
+
+    otherLayout->addWidget(addPartButton, 0, 0);
+    otherLayout->addWidget(otherLabel, 0, 1);
+    otherLayout->addWidget(additivePartText, 0, 2);
+    objectLayout->addWidget(otherWidget);
+    QObject::connect(addPartButton, &QPushButton::clicked, this, &DataInsertion::addAdditivePart);
 
     //实验方法
-    operationMethod = new QLabel(QStringLiteral("实验方式"), this);
-    method = new QLabel(QStringLiteral("施用方式"), this);
+    operationMethod = new QLabel(QString("实验方式"), this);
+    method = new QLabel(QString("施用方式"), this);
     methodText = new QLineEdit(this);
-    frequency = new QLabel(QStringLiteral("频率"), this);
+    frequency = new QLabel(QString("频率"), this);
     frequencyText = new QLineEdit(this);
-    frequencyText->setPlaceholderText(QString::fromLocal8Bit("略"));
-    dosage = new QLabel(QStringLiteral("剂量"), this);
+    frequencyText->setPlaceholderText(QString("略"));
+    dosage = new QLabel(QString("剂量"), this);
     dosageText = new QLineEdit(this);
-    dosageText->setPlaceholderText(QString::fromLocal8Bit("略"));
+    dosageText->setPlaceholderText(QString("略"));
     methodLayout = new QGridLayout();
     methodLayout->addWidget(operationMethod, 0, 0);
     methodLayout->addWidget(method, 1, 1);
@@ -88,43 +101,61 @@ DataInsertion::DataInsertion(QWidget *parent):
     methodLayout->setColumnStretch(1, 1);
     methodLayout->setColumnStretch(2, 3);
     // 实验地点
-    location = new QLabel(QStringLiteral("实验地点"), this);
-    locationButton = new QPushButton(QStringLiteral("添加地点"), this);
-    QLineEdit* locationText = new QLineEdit(this);
-    locationList<<locationText;
-    locationLayout = new QGridLayout();
-    locationLayout->addWidget(location, 0, 0);
-    locationLayout->addWidget(locationButton, 1, 1);
-    locationLayout->addWidget(locationText, 1, 2);
-    locationLayout->setColumnStretch(0, 1);
-    locationLayout->setColumnStretch(1, 1);
-    locationLayout->setColumnStretch(2, 3);
-    QObject::connect(locationButton, &QPushButton::clicked, this, &DataInsertion::addLocationText);
+    location = new QWidget(this);
+    locationLayout = new QVBoxLayout();
+    location->setLayout(locationLayout);
+    QLabel *locationTopLabel = new QLabel(QString("实验地点"), location);
+    QPushButton *addLocButton = new QPushButton(QString("添加地点"), location);
+    locationLayout->addWidget(locationTopLabel);
+    QWidget *tempLoc = new QWidget(location);
+    tempLoc->setObjectName("Location");
+    QGridLayout *tempLocLayout= new QGridLayout();
+    QLabel *locationLabel = new QLabel(QString("地点"), tempLoc);
+    QLineEdit* locationText = new QLineEdit(tempLoc);
+    locationText->setObjectName("location");
+    tempLocLayout->addWidget(addLocButton, 0, 0);
+    tempLocLayout->addWidget(locationLabel, 0, 1);
+    tempLocLayout->addWidget(locationText, 0, 2);
+//    tempLocLayout->setColumnStretch(0, 1);
+//    tempLocLayout->setColumnStretch(1, 1);
+//    tempLocLayout->setColumnStretch(2, 3);
+    tempLoc->setLayout(tempLocLayout);
+    this->locationLayout->addWidget(tempLoc);
+
+    QObject::connect(addLocButton, &QPushButton::clicked, this, &DataInsertion::addLocationText);
     //残留水平
-    residueLevel = new QLabel(QStringLiteral("残留水平"), this);
-    QLabel *phi = new QLabel(QStringLiteral("实验时间（天）"), this);
+    residue = new QWidget(this);
+    residueLayout = new QVBoxLayout();
+    residue->setLayout(residueLayout);
+    QWidget *residueWidget = new QWidget(residue);
+    residueWidget->setObjectName("Residue");
+    QLabel *residueTopLevel= new QLabel(QStringLiteral("残留水平"), residueWidget);
+    QLabel *phi = new QLabel(QStringLiteral("实验时间（天）"), residueWidget);
     QLineEdit *phiText = new QLineEdit(this);
+    phiText->setObjectName("phi");
     // 整形 范围：[1, 99]
-    QIntValidator *pIntValidator = new QIntValidator(this);
+    QIntValidator *pIntValidator = new QIntValidator(residueWidget);
 //    pIntValidator->setRange(1, 99);
     phiText->setValidator(pIntValidator);
-    QLabel *residue = new QLabel(QStringLiteral("残留量"), this);
-    QTextEdit *residueText = new QTextEdit(this);
-    phiList<<phiText;
-    residueList<<residueText;
-    addPhiButton = new QPushButton(QStringLiteral("添加实验数据"), this);
-    residueLayout = new QGridLayout();
-    residueLayout->addWidget(residueLevel, 0, 0);
-    residueLayout->addWidget(phi, 1, 1);
-    residueLayout->addWidget(phiText, 1, 2);
-    residueLayout->addWidget(residue, 1, 3);
-    residueLayout->addWidget(residueText, 1, 4);
-    residueLayout->addWidget(addPhiButton, 2, 1);
-    residueLayout->setColumnStretch(0, 1);
-    residueLayout->setColumnStretch(1, 1);
-    residueLayout->setColumnStretch(2, 3);
-    residueLayout->setColumnStretch(3, 1);
-    residueLayout->setColumnStretch(4, 3);
+    QLabel *residueLabel = new QLabel(QStringLiteral("残留量"), residueWidget);
+    QTextEdit *residueText = new QTextEdit(residueWidget);
+    residueText->setObjectName("residue");
+
+    QPushButton *addPhiButton = new QPushButton(QStringLiteral("添加实验数据"), residueWidget);
+    QGridLayout *tempLayout = new QGridLayout();
+    tempLayout->addWidget(residueTopLevel, 0, 0);
+    tempLayout->addWidget(phi, 1, 1);
+    tempLayout->addWidget(phiText, 1, 2);
+    tempLayout->addWidget(residueLabel, 1, 3);
+    tempLayout->addWidget(residueText, 1, 4);
+    tempLayout->addWidget(addPhiButton, 2, 0);
+    tempLayout->setColumnStretch(0, 1);
+    tempLayout->setColumnStretch(1, 1);
+    tempLayout->setColumnStretch(2, 3);
+    tempLayout->setColumnStretch(3, 1);
+    tempLayout->setColumnStretch(4, 3);
+    residueWidget->setLayout(tempLayout);
+    residueLayout->addWidget(residueWidget);
     QObject::connect(addPhiButton, &QPushButton::clicked, this, &DataInsertion::addPhi);
 
     // 预览，添加，修改按钮
@@ -138,21 +169,32 @@ DataInsertion::DataInsertion(QWidget *parent):
     buttonLayout->addWidget(cancelButton);
 
     /*布局*/
-    mainLayout = new QVBoxLayout(this);
+    mainLayout = new QVBoxLayout();
     // 农药成分
     mainLayout->addLayout(pesticideLayout);
     // 作用对象
-    mainLayout->addLayout(objectLayout);
+//    mainLayout->addLayout(objectLayout);
+    mainLayout->addWidget(object);
 //    mainLayout->addStretch();
     //方法
     mainLayout->addLayout(methodLayout);
     //地点
-    mainLayout->addLayout(locationLayout);
+//    mainLayout->addLayout(locationLayout);
+    mainLayout->addWidget(location);
     // 残留水平
-    mainLayout->addLayout(residueLayout);
+//    mainLayout->addLayout(residueLayout);
+    mainLayout->addWidget(residue);
 
     mainLayout->addStretch(1);
     mainLayout->addLayout(buttonLayout);
+    // 设置滚动轴
+    QWidget *client = new QWidget();
+    client->setLayout(mainLayout);
+    QScrollArea *scrollArea = new QScrollArea;
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setWidget(client);
+    this->setLayout(new QVBoxLayout);
+    this->layout()->addWidget(scrollArea);
 //    mainLayout->setSizeConstraint(QLayout::SetFixedSize);
     QObject::connect(saveButton, &QPushButton::clicked, this, &DataInsertion::save);
     QObject::connect(previewButton, &QPushButton::clicked, this, &DataInsertion::preview);
@@ -173,126 +215,224 @@ void DataInsertion::preset()
 
     this->ediblePartText->setText("稻谷");
     this->nonEdiblePartText->setText("水稻秸秆");
-    foreach(QLineEdit *l , this->additivePartList)
-        l->setText("土壤");
+
+    QList<QWidget*> otherList =  this->object->findChildren<QWidget*>("AddictivePart", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, otherList)
+    {
+        temp->findChild<QLineEdit*>("addictive", Qt::FindDirectChildrenOnly)->setText(QString("土壤"));
+    }
     this->methodText->setText("喷施");
     this->frequencyText->setText("略");
     this->dosageText->setText("略");
 
-    foreach(QLineEdit *l, this->locationList)
+
+    QList<QWidget*> locationList =  this->location->findChildren<QWidget*>("Location", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, locationList)
     {
-        l->setText("黑龙江");
+        temp->findChild<QLineEdit*>("location", Qt::FindDirectChildrenOnly)->setText(QString("黑龙江"));
     }
-    foreach(QLineEdit *l, this->phiList)
+    QList<QWidget*> residueList =  this->residue->findChildren<QWidget*>("Residue", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, residueList)
     {
-        l->setText(QString::number(5));
-    }
-    foreach(QTextEdit *l, this->residueList)
-    {
-        l->setText("0.010\n0.010\n0.010\n0.010\n0.010\n0.010\n0.010\n0.070\n0.120\n0.190\n0.220\n0.230\n0.260\n0.270\n0.280\n0.330\n0.490\n1.100\n1.200\n1.300\n1.400\n1.600\n1.600\n1.600");
+        temp->findChild<QLineEdit*>("phi", Qt::FindDirectChildrenOnly)->setText(QString::number(5));
+        temp->findChild<QTextEdit*>("residue", Qt::FindDirectChildrenOnly)->setText("0.010\n0.010\n0.010\n0.010\n0.010\n0.010\n0.010\n0.070\n0.120\n0.190\n0.220\n0.230\n0.260\n0.270\n0.280\n0.330\n0.490\n1.100\n1.200\n1.300\n1.400\n1.600\n1.600\n1.600");
     }
 
 }
 
 void DataInsertion::addAdditivePart()
 {
-    int rowCount = this->objectLayout->rowCount();
-    QLineEdit *additivePartText = new QLineEdit(this);
-    this->additivePartList<<additivePartText;
-    this->objectLayout->addWidget(additivePartText, rowCount, 2);
+    QWidget *otherWidget = new QWidget(this->object);
+    otherWidget->setObjectName("AddictivePart");
+    QGridLayout *otherLayout = new QGridLayout();
+    otherWidget->setLayout(otherLayout);
+    QLabel *otherLabel = new QLabel(QString("其他部分"), otherWidget);
+    QPushButton *deletePartButton = new QPushButton(QString("删除此行"), otherWidget);
+    QLineEdit *additivePartText = new QLineEdit(otherWidget);
+    additivePartText->setObjectName("addictive");
+    otherLayout->addWidget(deletePartButton, 0, 0);
+    otherLayout->addWidget(otherLabel, 0, 1);
+    otherLayout->addWidget(additivePartText, 0, 2);
+    objectLayout->addWidget(otherWidget);
+    QObject::connect(deletePartButton, &QPushButton::clicked, this, &DataInsertion::deleteAdditivePart);
+
+}
+
+void DataInsertion::deleteAdditivePart()
+{
+    QPushButton *pButton = qobject_cast<QPushButton *>(sender());
+    if(pButton)
+    {
+        QWidget* tempWidget = (pButton->parentWidget());
+        this->objectLayout->removeWidget(tempWidget);
+        delete tempWidget;
+    }
 }
 
 void DataInsertion::addLocationText()
 {
-    int rowCount = this->locationLayout->rowCount();
-    QLineEdit *locationText = new QLineEdit(this);
-    this->locationList<<locationText;
-    this->locationLayout->addWidget(locationText, rowCount, 2);
+    QWidget *temp = new QWidget(this->location);
+    temp->setObjectName("Location");
+    QGridLayout *tempLayout= new QGridLayout();
+    QLabel *locationLabel = new QLabel(QString("地点"), temp);
+    QLineEdit* locationText = new QLineEdit(temp);
+    locationText->setObjectName("location");
+    QPushButton *deleteBtn = new QPushButton(QString("删除此行"), temp);
+    tempLayout->addWidget(deleteBtn, 0, 0);
+    tempLayout->addWidget(locationLabel, 0, 1);
+    tempLayout->addWidget(locationText, 0, 2);
+//    tempLayout->setColumnStretch(0, 1);
+//    tempLayout->setColumnStretch(1, 1);
+//    tempLayout->setColumnStretch(2, 3);
+    temp->setLayout(tempLayout);
+    this->locationLayout->addWidget(temp);
+
+    QObject::connect(deleteBtn, &QPushButton::clicked, this, &DataInsertion::deleteLocationText);
+
+}
+void DataInsertion::deleteLocationText()
+{
+    QPushButton *pButton = qobject_cast<QPushButton *>(sender());
+    if(pButton)
+    {
+        QWidget* tempWidget = (pButton->parentWidget());
+        this->locationLayout->removeWidget(tempWidget);
+        delete tempWidget;
+    }
 }
 
 void DataInsertion::addPhi()
 {
-    int rowCount = this->residueLayout->rowCount();
-    QLabel *phi2 = new QLabel(QStringLiteral("实验时间（天）"), this);
-    QLineEdit *phiText2 = new QLineEdit(this);
-    // 整形
-    QIntValidator *pIntValidator = new QIntValidator(this);
-    phiText2->setValidator(pIntValidator);
-    QLabel *residue2 = new QLabel(QStringLiteral("残留量"), this);
-    QTextEdit *residueText2 = new QTextEdit(this);
-    this->phiList << phiText2;
-    this->residueList << residueText2;
-    this->residueLayout->addWidget(phi2, rowCount, 1);
-    this->residueLayout->addWidget(phiText2, rowCount, 2);
-    this->residueLayout->addWidget(residue2, rowCount, 3);
-    this->residueLayout->addWidget(residueText2, rowCount, 4);
+    QWidget *residueWidget = new QWidget(this->residue);
+    residueWidget->setObjectName("Residue");
+    QLabel *phi = new QLabel(QString("实验时间（天）"), residueWidget);
+    QLineEdit *phiText = new QLineEdit(residueWidget);
+    phiText->setObjectName("phi");
+    // 整形 范围：[1, 99]
+    QIntValidator *pIntValidator = new QIntValidator(residueWidget);
+//    pIntValidator->setRange(1, 99);
+    phiText->setValidator(pIntValidator);
+    QLabel *residueLabel = new QLabel(QString("残留量"), residueWidget);
+    QTextEdit *residueText = new QTextEdit(residueWidget);
+    residueText->setObjectName("residue");
+    QPushButton *deletePhiButton = new QPushButton(QString("删除此行数据"), residueWidget);
+    QGridLayout *tempLayout = new QGridLayout();
+    tempLayout->addWidget(deletePhiButton, 0, 0);
+    tempLayout->addWidget(phi, 0, 1);
+    tempLayout->addWidget(phiText, 0, 2);
+    tempLayout->addWidget(residueLabel, 0, 3);
+    tempLayout->addWidget(residueText, 0, 4);
+    tempLayout->setColumnStretch(0, 1);
+    tempLayout->setColumnStretch(1, 1);
+    tempLayout->setColumnStretch(2, 3);
+    tempLayout->setColumnStretch(3, 1);
+    tempLayout->setColumnStretch(4, 3);
+    residueWidget->setLayout(tempLayout);
+    residueLayout->addWidget(residueWidget);
+    QObject::connect(deletePhiButton, &QPushButton::clicked, this, &DataInsertion::deletePhi);
+}
+
+void DataInsertion::deletePhi()
+{
+    QPushButton *pButton = qobject_cast<QPushButton *>(sender());
+    if(pButton)
+    {
+        QWidget* tempWidget = (pButton->parentWidget());
+        this->residueLayout->removeWidget(tempWidget);
+        delete tempWidget;
+    }
 }
 
 bool DataInsertion::checkValidation()
 {
     if(this->chemicalNameText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("化学名称"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("化学名称"));
         return false;
     }
     if(this->chineseNameText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("中文名"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("中文名"));
         return false;
     }
     if(this->englishNameText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("英文名"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("英文名"));
         return false;
     }
     if(this->molecularText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("分子量"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("分子量"));
         return false;
     }
     if(this->ediblePartText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("可食用部分"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("可食用部分"));
         return false;
     }
     if(this->nonEdiblePartText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("不可食用部分"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("不可食用部分"));
         return false;
     }
     if(this->methodText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("施用方式"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("施用方式"));
         return false;
     }
     if(this->frequencyText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("频率"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("频率"));
         return false;
     }
     if(this->dosageText->text().isEmpty())
     {
-        QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("剂量"));
+        QMessageBox::critical(NULL, QString("Critical"), QString("剂量"));
         return false;
     }
 
-    foreach (QLineEdit* l, this->phiList)
+    QList<QWidget*> residueList =  this->residue->findChildren<QWidget*>("Residue", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, residueList)
     {
-        if(l->text().isEmpty())
+        QString string = temp->findChild<QLineEdit*>("phi", Qt::FindDirectChildrenOnly)->text();
+        if(string.isEmpty())
         {
-            QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("phi不能为空"));
+            QMessageBox::critical(NULL, QString("间隔期错误"), QString("实验时间不能为空"));
+            return false;
+        }
+        bool ok;
+        int phi = string.toInt(&ok);
+        if(!ok)
+        {
+            QMessageBox::warning(NULL, QString("间隔期错误"), QString("实验时间无效!"));
+            return false;
+        }
+        if(temp->findChild<QTextEdit*>("residue", Qt::FindDirectChildrenOnly)->toPlainText().isEmpty())
+        {
+            QMessageBox::critical(NULL, QString("Critical"), QString("实验残留量不能为空"));
             return false;
         }
     }
 
-    foreach (QTextEdit* l, this->residueList)
+    QList<QWidget*> locationList =  this->location->findChildren<QWidget*>("Location", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, locationList)
     {
-        if(l->toPlainText().isEmpty())
+        if(temp->findChild<QLineEdit*>("location", Qt::FindDirectChildrenOnly)->text().isEmpty())
         {
-            QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("residue不能为空"));
+            QMessageBox::critical(NULL, QString("Critical"), QString("实验地点不能为空"));
             return false;
         }
     }
+    QList<QWidget*> partList =  this->objectLayout->findChildren<QWidget*>("AddictivePart", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, partList)
+    {
+        if(temp->findChild<QLineEdit*>("addictive", Qt::FindDirectChildrenOnly)->text().isEmpty())
+        {
+            QMessageBox::critical(NULL, QString("Critical"), QString("作用对象其他部分不能为空"));
+            return false;
+        }
+    }
+    return true;
 }
 
 void DataInsertion::preview()
@@ -308,32 +448,9 @@ void DataInsertion::preview()
 }
 void DataInsertion::save()
 {    
-
-//    QString plainText = this->residueText->toPlainText();
-//    QStringList list = plainText.split("\n", QString::SkipEmptyParts);
-//    QVector<double> residueVector;
-
-//    for(int i=0; i<list.size(); i++)
-//    {
-//        bool ok;
-//        double residue = list.at(i).toDouble(&ok);
-//        if(!ok)
-//        {
-//            QMessageBox::warning(NULL, "Residues Value Format Error!", QString("%1 at line %2 is invalid!").arg(list.at(i)).arg(i+1));
-//            return;
-//        }
-//        residueVector.push_back(residue);
-//    }
-//    foreach (QLineEdit* l, this->additivePartList)
-//    {
-//        if(l->text().isEmpty())
-//        {
-//            QMessageBox::critical(NULL, QString("Critical"), QStringLiteral("其他部分"));
-//            return;
-//        }
-//    }
     if(!this->checkValidation())
         return;
+//    qDebug() << "save";
 
     PesticideData *pesticide = new PesticideData();
     pesticide->chineseName = QString::fromLocal8Bit(chineseNameText->text().trimmed().toUtf8());
@@ -345,48 +462,44 @@ void DataInsertion::save()
     pesticide->method= QString::fromLocal8Bit(methodText->text().trimmed().toUtf8());
     pesticide->frequency= QString::fromLocal8Bit(frequencyText->text().trimmed().toUtf8());
     pesticide->dosage= QString::fromLocal8Bit(dosageText->text().trimmed().toUtf8());
-    QVector<QString> location;
-    foreach(QLineEdit*l, locationList)
+    QVector<QString> locations;
+    QList<QWidget*> locationList =  this->location->findChildren<QWidget*>("Location", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, locationList)
     {
-        location.push_back(l->text().trimmed().toUtf8());
+        locations.push_back(temp->findChild<QLineEdit*>("location", Qt::FindDirectChildrenOnly)->text().trimmed());
     }
-    pesticide->location = location;
+    pesticide->location = locations;
     QVector<QString> additive;
-    foreach(QLineEdit*l, this->additivePartList)
+    QList<QWidget*> partList =  this->object->findChildren<QWidget*>("AddictivePart", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, partList)
     {
-        additive.push_back(l->text().trimmed().toUtf8());
+        additive.push_back(temp->findChild<QLineEdit*>("addictive", Qt::FindDirectChildrenOnly)->text().trimmed());
     }
     pesticide->additive = additive;
 
-    int phiSize = phiList.size();
-    for(int i=0; i< phiSize; i++)
+    QList<QWidget*> residueList =  this->residue->findChildren<QWidget*>("Residue", Qt::FindDirectChildrenOnly);
+    foreach(QWidget* temp, residueList)
     {
         bool ok;
-        int phi = phiList.at(i)->text().toInt(&ok);
-        if(!ok)
-        {
-            QMessageBox::warning(NULL, QStringLiteral("间隔期错误"), QString("phi at line %1 is invalid!%!").arg(i+1));
-            return;
-        }
-        QVector<double> temp;
-        QString plainText = residueList.at(i)->toPlainText();
+        int phi = temp->findChild<QLineEdit*>("phi", Qt::FindDirectChildrenOnly)->text().toInt(&ok);
+        QString plainText = temp->findChild<QTextEdit*>("residue", Qt::FindDirectChildrenOnly)->toPlainText();
         QStringList list = plainText.split("\n", QString::SkipEmptyParts);
-
+        QVector<double> tempVector;
         int residueSize = list.size();
         for(int j=0; j<residueSize; j++)
         {
-            double residue = list.at(j).toDouble(&ok);
+            double residues = list.at(j).toDouble(&ok);
             if(!ok)
             {
-                QMessageBox::warning(NULL, QStringLiteral("残留量错误"), QString("%residue at line %1 is invalid!%!").arg(i+1));
+                QMessageBox::warning(NULL, QString("残留量错误"), QString("实验数据中残留量值无效!"));
                 return;
             }
-            temp.push_back(residue);
+            tempVector.push_back(residues);
         }
-        pesticide->residues[phi] = temp;
-    }
+        pesticide->residues[phi] = tempVector;
 
-    this->xlsFilePath = QString("%1/%2/%3.xls").arg(QDir::currentPath()).arg("MRL").arg(pesticide->chineseName);
+    }
+    this->xlsFilePath = QString("%1/%2/限量分析_%3.xls").arg(QDir::currentPath()).arg("MRL").arg(pesticide->chineseName);
     saveToExcel(pesticide, this->xlsFilePath);
 }
 

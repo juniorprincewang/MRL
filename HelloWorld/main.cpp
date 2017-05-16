@@ -21,12 +21,12 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 #include "imageviewer/imageviewer.h"
-//#include "spreadsheet/spreadsheet.h"
 #include <QCommandLineParser>
 // for bind2nd
 #include <functional>
 #include <QTextCodec>
 #include <QDateTime>
+#include <QDesktopWidget>
 
 #include <boost/regex.hpp>
 #include <boost/math/distributions/students_t.hpp>
@@ -245,11 +245,24 @@ int main(int argc, char *argv[])
 
     splash->show();
     a.processEvents();
+    // 设置全局字体大小
+    QFont font =  a.font();
+    font.setPointSize(14);
+    a.setFont(font);
 
     MainWindow w;
-    splash->showMessage(QObject::tr("Loading modules..."), Qt::AlignRight | Qt::AlignTop);
+    splash->showMessage(QObject::tr("载入中..."), Qt::AlignRight | Qt::AlignTop);
     Sleeper::sleep(1);
+
+    // 设置主窗体大小
+    QDesktopWidget *pDesktop = QApplication::desktop();
+    w.resize(3*pDesktop->width()/4, 9*pDesktop->height()/10);
     w.show();
+    w.move((pDesktop->width()-w.width())/2, 0);
+//    w.showFullScreen();
+//    w.showMaximized();
+//    SpreadSheet sheet(10, 6);
+//    sheet.show();
     splash->finish(&w);
     delete splash;
 

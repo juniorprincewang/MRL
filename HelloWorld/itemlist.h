@@ -1,6 +1,9 @@
 ﻿#ifndef ITEMLIST_H
 #define ITEMLIST_H
-
+#include <QMessageBox>
+#include <QPushButton>
+#include <QLabel>
+#include <QDebug>
 #include <QStackedWidget>
 #include "analyselist.h"
 #include "assesslist.h"

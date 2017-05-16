@@ -63,7 +63,7 @@ void DigestionFigureInterface::plot(QString &fileSavePath)
     excel->digestion = this->selectData;
     excel->makeMetabolicPlot();
     delete excel;
-    qDebug() << "图标保存成功.";
+    qDebug() << "Digestion图标保存成功。";
 
 }
 

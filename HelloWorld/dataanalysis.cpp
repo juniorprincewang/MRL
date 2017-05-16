@@ -102,6 +102,15 @@ DataAnalysis::DataAnalysis(QWidget *parent)
     //方法
     mainLayout->addLayout(methodLayout);
 
+    // 设置滚动轴
+    QWidget *client = new QWidget();
+    client->setLayout(mainLayout);
+    QScrollArea *scrollArea = new QScrollArea;
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setWidget(client);
+    this->setLayout(new QVBoxLayout);
+    this->layout()->addWidget(scrollArea);
+
     // 初始化其他变量
     pesticide = NULL;
     key = 0;
@@ -120,7 +129,6 @@ void DataAnalysis::receiveSelectedData(PesticideData *p, int key)
     this->pesticide = p;
     this->key = key;
     this->residues = p->residues[key];
-//    fillWidget();
 }
 
 void DataAnalysis::fillWidget()

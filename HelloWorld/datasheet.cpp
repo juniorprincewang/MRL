@@ -1,66 +1,68 @@
-﻿#include "datasheet.h"
-#include <QtWidgets>
+﻿#include <QtWidgets>
 
-DataSheet::DataSheet(QWidget *parent)
+#include "datasheet.h"
+
+
+DataSheet::DataSheet(int rows, int cols, QWidget *parent)
         : QWidget(parent)
 {
+    table = new QTableWidget(rows, cols, this);
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+//    table->horizontalHeader()->setStretchLastSection(true);
+    table->horizontalHeader()->adjustSize();
+    table->horizontalHeader()->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
 
-//    formulaInput = new QLineEdit(this);
+    table->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
 
+    table->setItemPrototype(table->item(rows - 1, cols - 1));
+    table->setItemDelegate(new DataSheetDelegate());
 
-//    cellLabel = new QLabel(toolBar);
-//    cellLabel->setMinimumSize(80, 0);
-
-//    toolBar->addWidget(cellLabel);
-//    toolBar->addWidget(formulaInput);
-
-    table = new QTableWidget(8, 1, this);
-    table->setObjectName("viewTable");
-    table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-
-
-//    table->setAutoScroll(true);
-    table->setItemPrototype(new QTableWidgetItem());
-//    table->setItemDelegate(new DataSheetDelegate());
-    table->horizontalHeader()->setStretchLastSection(true);
-    table->horizontalHeader()->setVisible(false);
-    table->horizontalHeader()->setSectionsClickable(false);//设置表头不可点击（默认点击后进行排序）
-    table->verticalHeader()->setStretchLastSection(true);
-    table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-
-    table->setFocusPolicy(Qt::NoFocus); //取消选中单元格时的虚线框
-    table->setSelectionBehavior(QAbstractItemView::SelectColumns); //选择整列
-    table->setSelectionMode(QAbstractItemView::SingleSelection); //选择单行模式
-    table->setMouseTracking(true);  //跟踪鼠标一定要先设的值
-    table->setFrameShape(QFrame::NoFrame);//设置无边框
-    table->setShowGrid(false); //设置不显示格子线
-
-
-
-//    for(int i=0; i<cols; i++)
-//    {
-//        table->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
-//    }
+    updateColor(0);
     setupContents();
 
-
-//    updateColor(0);
-//    setupContents();
-
-//    connect(table, &QTableWidget::currentItemChanged,
-//            this, &DataSheet::updateStatus);
-//    connect(table, &QTableWidget::currentItemChanged,
-//            this, &DataSheet::updateColor);
-//    connect(table, &QTableWidget::currentItemChanged,
-//            this, &DataSheet::updateLineEdit);
-//    connect(table, &QTableWidget::itemChanged,
-//            this, &DataSheet::updateStatus);
+    connect(table, &QTableWidget::currentItemChanged,
+            this, &DataSheet::updateColor);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(table);
 //    connect(formulaInput, &QLineEdit::returnPressed, this, &DataSheet::returnPressed);
-//    connect(table, &QTableWidget::itemChanged,
-//            this, &DataSheet::updateLineEdit);
+
 
 //    setWindowTitle(tr("DataSheet"));
+}
 
+DataSheet::DataSheet(int rows, int cols, QStringList headers, QWidget *parent)
+        : QWidget(parent)
+{
+    table = new QTableWidget(rows, cols, this);
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+//    table->horizontalHeader()->setStretchLastSection(true);
+    table->adjustSize();
+    table->horizontalHeader()->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
+    table->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
+    int col = 0;
+    foreach(QString header, headers)
+        table->setHorizontalHeaderItem(col, new QTableWidgetItem(header));
+
+    table->setItemPrototype(table->item(rows - 1, cols - 1));
+    table->setItemDelegate(new DataSheetDelegate());
+
+    updateColor(0);
+    setupContents();
+
+    connect(table, &QTableWidget::currentItemChanged,
+            this, &DataSheet::updateColor);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(table);
+}
+
+void DataSheet::setHeader(QStringList headers)
+{
+    int col = 0;
+    foreach(QString header, headers)
+    {
+        table->setHorizontalHeaderItem(col, new QTableWidgetItem(header));
+        col++;
+    }
 }
 
 void DataSheet::updateColor(QTableWidgetItem *item)
@@ -86,22 +88,13 @@ void DataSheet::updateColor(QTableWidgetItem *item)
 
     pt.end();
 
-    colorAction->setIcon(pix);
-}
-
-void DataSheet::updateLineEdit(QTableWidgetItem *item)
-{
-    if (item != table->currentItem())
-        return;
-    if (item)
-        formulaInput->setText(item->data(Qt::EditRole).toString());
-    else
-        formulaInput->clear();
+//    colorAction->setIcon(pix);
 }
 
 void DataSheet::returnPressed()
 {
-    QString text = formulaInput->text();
+//    QString text = formulaInput->text();
+    QString text = "returnPressed";
     int row = table->currentRow();
     int col = table->currentColumn();
     QTableWidgetItem *item = table->item(row, col);
@@ -171,7 +164,7 @@ bool DataSheet::runInputDialog(const QString &title,
     QLabel cell1Label(c1Text, &group);
     QComboBox cell1RowInput(&group);
     int c1Row, c1Col;
-    decode_pos(*cell1, &c1Row, &c1Col);
+    decode_position(*cell1, &c1Row, &c1Col);
     cell1RowInput.addItems(rows);
     cell1RowInput.setCurrentIndex(c1Row);
 
@@ -185,7 +178,7 @@ bool DataSheet::runInputDialog(const QString &title,
     QLabel cell2Label(c2Text, &group);
     QComboBox cell2RowInput(&group);
     int c2Row, c2Col;
-    decode_pos(*cell2, &c2Row, &c2Col);
+    decode_position(*cell2, &c2Row, &c2Col);
     cell2RowInput.addItems(rows);
     cell2RowInput.setCurrentIndex(c2Row);
     QComboBox cell2ColInput(&group);
@@ -198,7 +191,7 @@ bool DataSheet::runInputDialog(const QString &title,
     QLabel outLabel(outText, &group);
     QComboBox outRowInput(&group);
     int outRow, outCol;
-    decode_pos(*outCell, &outRow, &outCol);
+    decode_position(*outCell, &outRow, &outCol);
     outRowInput.addItems(rows);
     outRowInput.setCurrentIndex(outRow);
     QComboBox outColInput(&group);
@@ -290,16 +283,16 @@ void DataSheet::actionSum()
         col_cur = table->column(current);
     }
 
-    QString cell1 = encode_pos(row_first, col_first);
-    QString cell2 = encode_pos(row_last, col_last);
-    QString out = encode_pos(row_cur, col_cur);
+    QString cell1 = encode_position(row_first, col_first);
+    QString cell2 = encode_position(row_last, col_last);
+    QString out = encode_position(row_cur, col_cur);
 
     if (runInputDialog(tr("Sum cells"), tr("First cell:"), tr("Last cell:"),
                        QString("%1").arg(QChar(0x03a3)), tr("Output to:"),
                        &cell1, &cell2, &out)) {
         int row;
         int col;
-        decode_pos(out, &row, &col);
+        decode_position(out, &row, &col);
         table->item(row, col)->setText(tr("sum %1 %2").arg(cell1, cell2));
     }
 }
@@ -312,12 +305,12 @@ void DataSheet::actionMath_helper(const QString &title, const QString &op)
 
     QTableWidgetItem *current = table->currentItem();
     if (current)
-        out = encode_pos(table->currentRow(), table->currentColumn());
+        out = encode_position(table->currentRow(), table->currentColumn());
 
     if (runInputDialog(title, tr("Cell 1"), tr("Cell 2"), op, tr("Output to:"),
                        &cell1, &cell2, &out)) {
         int row, col;
-        decode_pos(out, &row, &col);
+        decode_position(out, &row, &col);
         table->item(row, col)->setText(tr("%1 %2 %3").arg(op, cell1, cell2));
     }
 }
@@ -347,70 +340,85 @@ void DataSheet::clear()
         i->setText("");
 }
 
-void DataSheet::reloadColumns(QVector<DataStruct *> dataVector)
+QVector<double> DataSheet::updateAcuteContents(AssessData *data)
 {
-    int removeCol = dataVector.size();
-    qDebug() << "reloadColumns-removeCol "<< removeCol;
-    for(int col = 1; col<=removeCol; col++)
+    QVector<FoodLimit*> foodVec = data->foodInfo;
+    int row = 0;
+    foreach(FoodLimit *food, foodVec)
     {
-        table->removeColumn(col);
+        table->setItem(row, 0, new DataSheetItem(food->food));
+        table->setItem(row, 1, new DataSheetItem(QString::number(food->Fi)));
+        table->setItem(row, 2, new DataSheetItem(QString::number(food->stmr)));
+        table->setItem(row, 3, new DataSheetItem());
+        table->setItem(row, 4, new DataSheetItem(QString("* B%1 C%2").arg(row+1).arg(row+1)));
+//        table->setItem(row, 5, new DataSheetItem("ADI*63"));
+        table->setItem(row, 6, new DataSheetItem());
+        row++;
     }
-    this->addColumns(dataVector);
+    table->setItem(0, 5, new DataSheetItem(QString("ADI*63")));
+    table->setSpan(0, 5, row, 1);
+    table->setSpan(0, 6, row, 1);
+    table->setItem(row, 5, new DataSheetItem(QString("%1").arg(data->adi*63)));
+    table->item(row, 5)->setBackgroundColor(Qt::lightGray);
+    table->setItem(row, 0, new DataSheetItem("Total:"));
+    table->item(row,0)->setBackgroundColor(Qt::lightGray);
+    table->setItem(row, 4, new DataSheetItem(QString("sum E1 E%1").arg(row)));
+    table->item(row,4)->setBackgroundColor(Qt::lightGray);
+    table->setItem(row, 6, new DataSheetItem(QString("/ E%1 F%2").arg(row+1).arg(row+1)));
+    table->item(row, 6)->setBackgroundColor(Qt::lightGray);
+    QString sumValue = table->item(row, 4)->text();
+    QString dailyValue = table->item(row, 5)->text();
+    QString percentileValue = table->item(row, 6)->text();
+    QVector<double> result;
+    result.push_back(sumValue.toDouble());
+    result.push_back(dailyValue.toDouble());
+    result.push_back(percentileValue.toDouble());
+    return result;
 }
 
-void DataSheet::addColumns(QVector<DataStruct *> dataVector)
+QVector<double> DataSheet::updateChronicContents(AssessData *data)
 {
-    QColor titleBackground(Qt::lightGray);
-    QFont titleFont = table->font();
-    titleFont.setBold(true);
-    int colNum = dataVector.size();
-    for(int col=1; col<= colNum; col++)
+    QVector<FoodLimit*> foodVec = data->foodInfo;
+    int row = 0;
+    foreach(FoodLimit *food, foodVec)
     {
-        DataStruct* dataStruct = dataVector[col-1];
-        table->insertColumn(col);
-        table->setItem(0, col, new QTableWidgetItem(QString("%1").arg(col)));
-        table->item(0, col)->setBackgroundColor(titleBackground);
-//        table->item(0, col)->setToolTip("This column shows the purchase date, double click to change");
-        table->item(0, col)->setFont(titleFont);
-        //
-        table->setItem(1, col, new QTableWidgetItem(dataStruct->regulator));
-        table->setItem(2, col, new QTableWidgetItem(dataStruct->chemical));
-        table->setItem(3, col, new QTableWidgetItem(dataStruct->crop));
-        table->setItem(4, col, new QTableWidgetItem(dataStruct->phi));
-        table->setItem(5, col, new QTableWidgetItem(dataStruct->rate));
-        table->setItem(6, col, new QTableWidgetItem(dataStruct->unit));
-        QVector<double> residueVector = dataStruct->residues;
-
-        for(int r_row=0; r_row<residueVector.size(); r_row++)
+        table->setItem(row, 0, new DataSheetItem(food->food));
+        table->setItem(row, 1, new DataSheetItem(QString::number(food->hr)));
+        table->setItem(row, 2, new DataSheetItem(QString::number(food->BWi)));
+        table->setItem(row, 3, new DataSheetItem(QString::number(food->LPi)));
+        table->setItem(row, 4, new DataSheetItem(QString::number(food->Ui)));
+        table->setItem(row, 5, new DataSheetItem(QString::number(food->Ei)));
+        table->setItem(row, 6, new DataSheetItem(QString::number(food->stmrp)));
+        table->setItem(row, 7, new DataSheetItem(QString::number(food->CVi)));
+        // IESTI
+        double IESTI = 0.0;
+        if(food->Ui < 25)
         {
-            QString r_value = QString::number(residueVector[r_row]);
-//            qDebug() << r_value;
-            table->setItem(7+r_row, col, new QTableWidgetItem(r_value));
+            IESTI = food->LPi*food->hr/food->BWi;
         }
-
+        else if(food->Ei < food->LPi)
+        {
+            IESTI = (food->Ei*food->hr*food->CVi+(food->LPi-food->Ei)*food->hr)/food->BWi;
+        }
+        else if(food->Ei >= food->LPi)
+        {
+            IESTI = food->LPi*food->hr*food->CVi/food->BWi;
+        }
+        table->setItem(row, 8, new DataSheetItem(QString("%1").arg(IESTI)));
+        // ARfD
+        double ARfd = IESTI / data->arfd;
+        table->setItem(row, 9, new DataSheetItem(QString("%1").arg(ARfd)));
+        row++;
     }
-}
 
-void DataSheet::addColumn()
-{
-    int colCount = table->columnCount();
-    QColor titleBackground(Qt::lightGray);
-    QFont titleFont = table->font();
-    titleFont.setBold(true);
-    table->insertColumn(colCount);
-//    table->setItem(0, colCount, new DataSheetItem("Date"));
-    table->setItem(0, colCount, new QTableWidgetItem(QString("%1").arg(colCount)));
-    table->item(0, colCount)->setBackgroundColor(titleBackground);
-    table->item(0, colCount)->setToolTip("This column shows the purchase date, double click to change");
-    table->item(0, colCount)->setFont(titleFont);
-
-    table->setItem(1, colCount, new QTableWidgetItem("11111"));
-    table->setItem(2, colCount, new QTableWidgetItem("15/6/2006"));
-    table->setItem(3, colCount, new QTableWidgetItem("15/6/2006"));
-    table->setItem(4, colCount, new QTableWidgetItem("21/5/2006"));
-    table->setItem(5, colCount, new QTableWidgetItem("16/6/2006"));
-    table->setItem(6, colCount, new QTableWidgetItem("16/6/2006"));
-
+//    QString sumValue = table->item(row, 4)->text();
+//    QString dailyValue = table->item(row, 5)->text();
+//    QString percentileValue = table->item(row, 6)->text();
+    QVector<double> result;
+//    result.push_back(sumValue.toDouble());
+//    result.push_back(dailyValue.toDouble());
+//    result.push_back(percentileValue.toDouble());
+    return result;
 }
 
 void DataSheet::setupContents()
@@ -419,28 +427,41 @@ void DataSheet::setupContents()
     QFont titleFont = table->font();
     titleFont.setBold(true);
 
-    //table->setHorizontalHeaderItem(0, new QTableWidgetItem("qqq"));
+    /*
     // column 0
-//    table->setItem(0, 0, new QTableWidgetItem("Item"));
-//    table->item(0, 0)->setBackgroundColor(titleBackground);
-//    table->item(0, 0)->setToolTip("This column shows the purchased item/service");
-//    table->item(0, 0)->setFont(titleFont);
-    table->setItem(0, 0, new QTableWidgetItem(" "));
-    table->setItem(1, 0, new QTableWidgetItem("Regulator:"));
-    table->setItem(2, 0, new QTableWidgetItem("Chemical:"));
-    table->setItem(3, 0, new QTableWidgetItem("Crop:"));
-    table->setItem(4, 0, new QTableWidgetItem("PHI:"));
-    table->setItem(5, 0, new QTableWidgetItem("App. Rate:"));
-    table->setItem(6, 0, new QTableWidgetItem("Unit:"));
-    table->setItem(7, 0, new QTableWidgetItem("Residues"));
+    table->setItem(0, 0, new DataSheetItem("Item"));
+    table->item(0, 0)->setBackgroundColor(titleBackground);
+    table->item(0, 0)->setToolTip("This column shows the purchased item/service");
+    table->item(0, 0)->setFont(titleFont);
 
+    table->setItem(1, 0, new DataSheetItem("AirportBus"));
+    table->setItem(2, 0, new DataSheetItem("Flight (Munich)"));
+    table->setItem(3, 0, new DataSheetItem("Lunch"));
+    table->setItem(4, 0, new DataSheetItem("Flight (LA)"));
+    table->setItem(5, 0, new DataSheetItem("Taxi"));
+    table->setItem(6, 0, new DataSheetItem("Dinner"));
+    table->setItem(7, 0, new DataSheetItem("Hotel"));
+    table->setItem(8, 0, new DataSheetItem("Flight (Oslo)"));
+    table->setItem(9, 0, new DataSheetItem("Total:"));
 
-//    table->item(9, 0)->setFont(titleFont);
-//    table->item(9, 0)->setBackgroundColor(Qt::lightGray);
+    table->item(9, 0)->setFont(titleFont);
+    table->item(9, 0)->setBackgroundColor(Qt::lightGray);
 
     // column 1
+    table->setItem(0, 1, new DataSheetItem("Date"));
+    table->item(0, 1)->setBackgroundColor(titleBackground);
+    table->item(0, 1)->setToolTip("This column shows the purchase date, double click to change");
+    table->item(0, 1)->setFont(titleFont);
 
-/*
+    table->setItem(1, 1, new DataSheetItem("15/6/2006"));
+    table->setItem(2, 1, new DataSheetItem("15/6/2006"));
+    table->setItem(3, 1, new DataSheetItem("15/6/2006"));
+    table->setItem(4, 1, new DataSheetItem("21/5/2006"));
+    table->setItem(5, 1, new DataSheetItem("16/6/2006"));
+    table->setItem(6, 1, new DataSheetItem("16/6/2006"));
+    table->setItem(7, 1, new DataSheetItem("16/6/2006"));
+    table->setItem(8, 1, new DataSheetItem("18/6/2006"));
+
     table->setItem(9, 1, new DataSheetItem());
     table->item(9, 1)->setBackgroundColor(Qt::lightGray);
 
@@ -518,27 +539,7 @@ void DataSheet::setupContents()
     */
 }
 
-const char *htmlText =
-"<HTML>"
-"<p><b>This demo shows use of <c>QTableWidget</c> with custom handling for"
-" individual cells.</b></p>"
-"<p>Using a customized table item we make it possible to have dynamic"
-" output in different cells. The content that is implemented for this"
-" particular demo is:"
-"<ul>"
-"<li>Adding two cells.</li>"
-"<li>Subtracting one cell from another.</li>"
-"<li>Multiplying two cells.</li>"
-"<li>Dividing one cell with another.</li>"
-"<li>Summing the contents of an arbitrary number of cells.</li>"
-"</HTML>";
-
-void DataSheet::showAbout()
-{
-    QMessageBox::about(this, "About DataSheet", htmlText);
-}
-
-void decode_pos(const QString &pos, int *row, int *col)
+void decode_position(const QString &pos, int *row, int *col)
 {
     if (pos.isEmpty()) {
         *col = -1;
@@ -549,9 +550,270 @@ void decode_pos(const QString &pos, int *row, int *col)
     }
 }
 
-QString encode_pos(int row, int col)
+QString encode_position(int row, int col)
 {
     return QString(col + 'A') + QString::number(row + 1);
 }
+/*****************************************************************************************
+ * datasheetdelegate
+ *****************************************************************************************
+*/
+
+DataSheetDelegate::DataSheetDelegate(QObject *parent)
+        : QItemDelegate(parent) {}
+
+QWidget *DataSheetDelegate::createEditor(QWidget *parent,
+                                          const QStyleOptionViewItem &,
+                                          const QModelIndex &index) const
+{
+/*    if (index.column() == 1) {
+        QDateTimeEdit *editor = new QDateTimeEdit(parent);
+        editor->setDisplayFormat("dd/M/yyyy");
+        editor->setCalendarPopup(true);
+        return editor;
+    }
+    else */if(index.column() == COL_SOURCE)
+    {
+        QComboBox *editor = new QComboBox(parent);
+        editor->setEditable(true);
+
+        QStringList values;
+        values << "残留中值" << "加工因子矫正的中值" << "残留最大值" << "推荐残留值";
+        editor->addItems(values);
+        QString currentText = index.model()->data(index, Qt::DisplayRole).toString();
+        int selectedItem = editor->findText(currentText);
+        if(selectedItem == -1)
+            editor->setEditText(index.model()->data(index, Qt::DisplayRole).toString());
+        else
+            editor->setCurrentIndex(selectedItem);
+        connect(editor, &QComboBox::currentTextChanged, this, &DataSheetDelegate::comboBoxChanged);
+
+//        editor->installEventFilter(const_cast<DataSheetDelegate*>(this));
+        return editor;
+    }
+    QLineEdit *editor = new QLineEdit(parent);
+
+    // create a completer with the strings in the column as model
+    QStringList allStrings;
+    for (int i = 1; i<index.model()->rowCount(); i++) {
+        QString strItem(index.model()->data(index.sibling(i, index.column()),
+            Qt::EditRole).toString());
+
+        if (!allStrings.contains(strItem))
+            allStrings.append(strItem);
+    }
+
+    QCompleter *autoComplete = new QCompleter(allStrings);
+    editor->setCompleter(autoComplete);
+    connect(editor, &QLineEdit::editingFinished, this, &DataSheetDelegate::commitAndCloseEditor);
+    return editor;
+}
+
+void DataSheetDelegate::comboBoxChanged()
+{
+//    QComboBox* send = qobject_cast<QComboBox*>(sender());
+//    qDebug() << send;
+//    qDebug() << send->parent();
+//    DataSheet *p = qobject_cast<DataSheet*>(send->parent());
+//    qDebug() << p;
+
+}
+
+void DataSheetDelegate::commitAndCloseEditor()
+{
+    QLineEdit *editor = qobject_cast<QLineEdit *>(sender());
+    emit commitData(editor);
+    emit closeEditor(editor);
+}
+
+void DataSheetDelegate::setEditorData(QWidget *editor,
+    const QModelIndex &index) const
+{
+    QLineEdit *edit = qobject_cast<QLineEdit*>(editor);
+    if (edit) {
+        edit->setText(index.model()->data(index, Qt::EditRole).toString());
+        return;
+    }
+
+//    QDateTimeEdit *dateEditor = qobject_cast<QDateTimeEdit *>(editor);
+//    if (dateEditor) {
+//        dateEditor->setDate(QDate::fromString(
+//                                index.model()->data(index, Qt::EditRole).toString(),
+//                                "d/M/yyyy"));
+//        return;
+//    }
+
+    QComboBox *comboEditor = qobject_cast<QComboBox *>(editor);
+    if(comboEditor)
+    {
+        QString currentText = index.model()->data(index, Qt::DisplayRole).toString();
+        int selectedItem = comboEditor->findText(currentText);
+        if(selectedItem == -1)
+            comboEditor->setEditText(index.model()->data(index, Qt::DisplayRole).toString());
+        else
+            comboEditor->setCurrentIndex(selectedItem);
+
+        return;
+    }
+
+}
+
+void DataSheetDelegate::setModelData(QWidget *editor,
+    QAbstractItemModel *model, const QModelIndex &index) const
+{
+    QLineEdit *edit = qobject_cast<QLineEdit *>(editor);
+    if (edit) {
+        model->setData(index, edit->text());
+        return;
+    }
+
+//    QDateTimeEdit *dateEditor = qobject_cast<QDateTimeEdit *>(editor);
+//    if (dateEditor)
+//    {
+//        model->setData(index, dateEditor->date().toString("dd/M/yyyy"));
+//        return;
+//    }
+    QComboBox *comboEditor = qobject_cast<QComboBox *>(editor);
+    if(comboEditor)
+    {
+        model->setData(index, comboEditor->currentText());
+
+        return;
+    }
+
+}
 
 
+/*
+ * datasheetitem
+ *
+*/
+DataSheetItem::DataSheetItem()
+        : QTableWidgetItem(), isResolving(false)
+{
+}
+
+DataSheetItem::DataSheetItem(const QString &text)
+        : QTableWidgetItem(text), isResolving(false)
+{
+}
+
+QTableWidgetItem *DataSheetItem::clone() const
+{
+    DataSheetItem *item = new DataSheetItem();
+    *item = *this;
+    return item;
+}
+
+QVariant DataSheetItem::data(int role) const
+{
+    if (role == Qt::EditRole /*|| role == Qt::StatusTipRole*/)
+        return formula();
+
+    if (role == Qt::DisplayRole)
+        return display();
+
+    QString t = display().toString();
+    bool isNumber = false;
+    int number = t.toInt(&isNumber);
+
+    if (role == Qt::TextColorRole) {
+        if (!isNumber)
+            return QVariant::fromValue(QColor(Qt::black));
+        else if (number < 0)
+            return QVariant::fromValue(QColor(Qt::red));
+        return QVariant::fromValue(QColor(Qt::blue));
+    }
+
+     if (role == Qt::TextAlignmentRole)
+         if (!t.isEmpty() && (t.at(0).isNumber() || t.at(0) == '-'))
+             return (int)(Qt::AlignRight | Qt::AlignVCenter);
+
+     return QTableWidgetItem::data(role);
+ }
+
+void DataSheetItem::setData(int role, const QVariant &value)
+{
+    QTableWidgetItem::setData(role, value);
+    if (tableWidget())
+        tableWidget()->viewport()->update();
+}
+
+QVariant DataSheetItem::display() const
+{
+    // avoid circular dependencies
+    if (isResolving)
+        return QVariant();
+
+    isResolving = true;
+    QVariant result = computeFormula(formula(), tableWidget(), this);
+    isResolving = false;
+    return result;
+}
+
+QVariant DataSheetItem::computeFormula(const QString &formula,
+                                         const QTableWidget *widget,
+                                         const QTableWidgetItem *self)
+{
+    // check if the s tring is actually a formula or not
+    QStringList list = formula.split(' ');
+    if (list.isEmpty() || !widget)
+        return formula; // it is a normal string
+
+    QString op = list.value(0).toLower();
+
+    int firstRow = -1;
+    int firstCol = -1;
+    int secondRow = -1;
+    int secondCol = -1;
+
+    if (list.count() > 1)
+        decode_position(list.value(1), &firstRow, &firstCol);
+
+    if (list.count() > 2)
+        decode_position(list.value(2), &secondRow, &secondCol);
+
+    const QTableWidgetItem *start = widget->item(firstRow, firstCol);
+    const QTableWidgetItem *end = widget->item(secondRow, secondCol);
+    double firstVal = start ? start->text().toDouble() : 0.0;
+    double secondVal = end ? end->text().toDouble() : 0.0;
+
+
+    QVariant result;
+    if (op == "sum") {
+        double sum = 0;
+        for (int r = firstRow; r <= secondRow; ++r) {
+            for (int c = firstCol; c <= secondCol; ++c) {
+                const QTableWidgetItem *tableItem = widget->item(r, c);
+                if (tableItem && tableItem != self)
+                    sum += tableItem->text().toDouble();
+            }
+        }
+
+        result = sum;
+    } else if (op == "+") {
+        result = (firstVal + secondVal);
+    } else if (op == "-") {
+        result = (firstVal - secondVal);
+    } else if (op == "*") {
+//        qDebug() << "formula = " << formula;
+//        qDebug() << firstRow << " " << firstCol;
+//        qDebug() << secondRow << " " << secondCol;
+//        qDebug() << start->text() << " end"<< end->text();
+        result = (firstVal * secondVal);
+//        qDebug()<< "**************" <<firstVal << "*"<<secondVal<<"="<< result;
+
+    } else if (op == "/") {
+        if (secondVal == 0)
+            result = QString("nan");
+        else
+            result = (firstVal / secondVal);
+    } else if (op == "=") {
+        if (start)
+            result = start->text();
+    } else {
+        result = formula;
+    }
+
+    return result;
+}

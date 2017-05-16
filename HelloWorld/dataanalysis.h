@@ -19,6 +19,7 @@
 #include <QFile>
 #include <QDir>
 #include <QDebug>
+#include <QScrollArea>
 #include "publicdata.h"
 #include "model.h"
 #include "excel.h"

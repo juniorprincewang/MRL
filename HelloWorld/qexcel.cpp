@@ -16,7 +16,8 @@ QExcel::QExcel(QObject *parent)
     sheet = 0;
 
     excel = new QAxObject("Excel.Application", parent);
-    excel->setProperty("Visible", false);
+//    excel->setProperty("Visible", true);
+    excel->dynamicCall("SetVisible (bool Visible)","false");//不显示窗体
     //xlMaximized =-4137 xlMinimized =-4140 •xlNormal =-4143
     excel->setProperty("WindowState", -4137);
     workBooks = excel->querySubObject("Workbooks");
@@ -38,7 +39,8 @@ QExcel::QExcel(QString xlsFilePath, QObject *parent)
     excel = new QAxObject("Excel.Application", parent);
     //xlMaximized =-4137 xlMinimized =-4140 •xlNormal =-4143
     excel->setProperty("WindowState", -4137);
-    excel->setProperty("Visible", true);
+//    excel->setProperty("Visible", false);
+    excel->dynamicCall("SetVisible(bool Visible)","true");//不显示窗体
     workBooks = excel->querySubObject("Workbooks");
     QFile file(xlsFilePath);
     if (file.exists())

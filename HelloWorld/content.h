@@ -3,8 +3,10 @@
 #define CONTENT_H
 
 #include <QStackedWidget>
+#include <QScrollArea>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QScrollArea>
 #include "datainsertion.h"
 #include "datalist.h"
 #include "figureinterface.h"
@@ -13,6 +15,8 @@
 #include "digestionanalysis.h"
 #include "digestionfigureinterface.h"
 #include "qqfigureinterface.h"
+#include "assessdatainsertion.h"
+#include "assessanalysis.h"
 
 class WelcomeInterface: public QWidget
 {
@@ -57,15 +61,21 @@ public:
     QQFigureInterface *qqFigurePage;
     DigestionFigureInterface *digFigurePage;
     DigestionDataDefinition *digDefinitionPage;
+    AssessDataInsertion *assessInsertionPage;
+    AcuteDataDefinition *acuteDefinitionPage;
+    AcuteAssessAnalysis *acuteAnalysisPage;
+    ChronicAssessAnalysis *chronicAnalysisPage;
+    ChronicDataDefinition *chronicDefinitionPage;
 
 signals:
     void sendSelectedData(PesticideData*, int);
+    void sendSelectedData(AssessData*, QVector<double>);
     void sendDigestionSelectedData(PesticideData*, QMap<int, double>, int);
 public slots:
     void receiveSelectedData(PesticideData *, int);
+    void receiveAssessSelectedData(AssessData *, QVector<double>);
     void receiveDigestionSelectedData(PesticideData*, QMap<int,double>, int);
     void setCurrentIndex(int index);
-private:
 
 };
 

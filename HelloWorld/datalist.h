@@ -16,8 +16,11 @@
 #include <QCheckBox>
 #include <QButtonGroup>
 #include <QRadioButton>
+#include <QLineEdit>
+#include <QScrollArea>
 #include "qexcel.h"
 #include "publicdata.h"
+#include "datasheet.h"
 
 class DataList: public QWidget
 {
@@ -28,13 +31,14 @@ public:
     void freshFileList();
 private:
     QString currentDir;
-    QPushButton *viewButton;
-    QTableWidget *tableWidget;
+//    QPushButton *viewButton;
+//    QTableWidget *tableWidget;
     QListWidget *fileListWidget;
     // 整体布局
     QVBoxLayout *mainLayout;
 public slots:
     void viewButtonClicked();
+    void deleteButtonClicked();
     void preview(QListWidgetItem*);
 };
 
@@ -46,6 +50,7 @@ public:
     void showFileList(QFileInfoList list);
     PesticideData* getPesticideData(QString);
 public:
+    QStringList filter;
     QString currentDir;
     QPushButton *selectButton;    
     QListWidget *fileListWidget;
@@ -103,6 +108,58 @@ public slots:
     void selectButtonClicked();
 signals:
     void sendSelectedData(PesticideData*, QMap<int, double>, int);
+};
+
+class AssessDataDefinition : public DataDefinition
+{
+    Q_OBJECT
+public:
+    AssessDataDefinition(QWidget *parent=0);
+
+    QVector<double> result;
+    QPushButton *selectButton;
+    QGridLayout *pesticideLayout;
+
+    QLineEdit *chineseNameText;
+    QLineEdit *englishNameText;
+    QLineEdit *chemicalNameText;
+    QLineEdit *molecularText;
+    QLineEdit *adiEdit;
+    QLineEdit *arfdEdit;
+    QString xlsFilePath;
+    QString selectedFile;
+    AssessData *assessData;
+//    int toxicityIndex;
+//    int residueIndex;
+//    QList<int> populationIndexList;
+    DataSheet *dataSheet;
+    AssessData *getAssessDataFromFile(QString);
+public slots:
+    virtual void showFileInfo(QListWidgetItem *);
+    void selectButtonClicked();
+signals:
+    void sendSelectedData(AssessData*, QVector<double>);
+};
+
+class AcuteDataDefinition: public AssessDataDefinition
+{
+    Q_OBJECT
+public:
+    AcuteDataDefinition(QWidget *parent);
+public slots:
+    virtual void showFileInfo(QListWidgetItem *);
+};
+
+class ChronicDataDefinition : public AssessDataDefinition
+{
+    Q_OBJECT
+public:
+    ChronicDataDefinition(QWidget *parent=0);
+public slots:
+    virtual void showFileInfo(QListWidgetItem *);
+//signals:
+//    void sendSelectedData(AssessData*, QVector<double>);
+
 };
 
 #endif // DATALIST_H

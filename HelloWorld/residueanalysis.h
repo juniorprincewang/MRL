@@ -20,7 +20,8 @@ private:
     bool isShapiroFranciaNormality();
 public:
     void fillWidget();
-    void plot();
+    void logNormalityPlot();
+    void normalityPlot();
 
 public slots:
     void receiveSelectedData(PesticideData*, int);

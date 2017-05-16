@@ -17,6 +17,14 @@ FigureInterface::FigureInterface(QWidget *parent)
     buttonLayout->addStretch();
     buttonLayout->addWidget(selectButton);
     mainLayout->addLayout(buttonLayout);
+    // 设置滚动轴
+    QWidget *client = new QWidget();
+    client->setLayout(mainLayout);
+    QScrollArea *scrollArea = new QScrollArea;
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setWidget(client);
+    this->setLayout(new QVBoxLayout);
+    this->layout()->addWidget(scrollArea);
 
     // 当前路径下的MRL文件夹
     this->currentDir = QString("%1/%2").arg(QDir::currentPath()).arg("MRL");

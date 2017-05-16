@@ -1,6 +1,5 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "datasheet.h"
 #include "resultsheet.h"
 #ifndef QT_NO_PRINTER
 #include <QPrinter>
@@ -8,7 +7,7 @@
 #include <QPrintPreviewDialog>
 #endif
 #include "printview.h"
-
+#include <QPalette>
 #include <QSplitter>
 #include <QListWidget>
 #include "content.h"
@@ -22,6 +21,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     // UI setting
     ui->setupUi(this);
+    // 设置背景颜色
+    setAutoFillBackground(true);
+    QPalette palette;
+    palette.setColor(QPalette::Background, QColor(255,255,255)); //白色
+    //palette.setBrush(QPalette::Background, QBrush(QPixmap(":/images/background.png")));
+    setPalette(palette);
+
     setWindowTitle(QStringLiteral("农药最大残留限量分析软件"));
     /*
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -55,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     leftList->setSizeAdjustPolicy(QListWidget::AdjustToContents);
         */
     Content *content = new Content(splitterLeft);
+
     QObject::connect(menu,
                      static_cast<void (Menu:: *)(int)>(&Menu::changeContentInterface),
                      content,
@@ -202,40 +209,6 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::viewData()
-{
-    if(this->tabWidget->indexOf(this->viewPage) != -1)
-    {
-        this->tabWidget->setCurrentWidget(this->viewPage);
-        return;
-    }
-
-    this->viewPage = new QGroupBox(QStringLiteral("所有数据"), this);
-    DataSheet* data_sheet =  new DataSheet(this->viewPage);
-
-    Excel *excel = new Excel();
-    QString excelPath = QString("%1/mrl_calculator.xls").arg(this->currentPath);
-    this->dataVector= excel->loadData(excelPath , "Data Library");
-    delete excel;
-//    qDebug() << "DataStruct Vector" << dataVector.size() ;
-    data_sheet->addColumns(this->dataVector);
-
-    QVBoxLayout *vBox = new QVBoxLayout(this->viewPage);
-    QPushButton *selectButton = new QPushButton(this->viewPage);
-    QPushButton *reloadButton = new QPushButton(this->viewPage);
-    selectButton->setText(QStringLiteral("选择数据列"));
-    reloadButton->setText(QStringLiteral("重新载入"));
-    QObject::connect(reloadButton, &QPushButton::clicked, this, &MainWindow::onReloadViewPushButtonClicked);
-    QObject::connect(selectButton, &QPushButton::clicked, this, &MainWindow::onSelectViewPushButtonClicked);
-    data_sheet->setObjectName("dataSheet");
-    vBox->addWidget(data_sheet);
-    vBox->addWidget(selectButton);
-    vBox->addWidget(reloadButton);
-    this->viewPage->setLayout(vBox);
-    int indexTab = this->tabWidget->addTab(this->viewPage, QStringLiteral("查看数据"));
-    this->tabWidget->setCurrentIndex(indexTab);
-
-}
 
 void MainWindow::addDataPage()
 {
@@ -687,15 +660,7 @@ void MainWindow::onSelectViewPushButtonClicked()
     }
     QMessageBox::warning(NULL, QStringLiteral("选择数据列!"), QStringLiteral("选择数据列无效!"));
 }
-void MainWindow::onReloadViewPushButtonClicked()
-{
-    DataSheet* sheet = this->viewPage->findChild<DataSheet*>("dataSheet");
-    Excel *excel = new Excel();
-    QString excelPath = QString("%1/mrl_calculator.xls").arg(this->currentPath);
-    this->dataVector= excel->loadData(excelPath , "Data Library");
-    delete excel;
-    sheet->reloadColumns(this->dataVector);
-}
+
 
 
 
@@ -723,7 +688,7 @@ void MainWindow::onTreeWidgetClicked(QTreeWidgetItem *item, int column)
         else if(col == 1)
         {
             qDebug() << QString("view data");
-            this->viewData();
+//            this->viewData();
         }
         break;
     case 1:

@@ -1,21 +1,29 @@
-#include "datasheetdelegate.h"
+﻿#include "spreadsheetdelegate.h"
 
 #include <QtWidgets>
 
-DataSheetDelegate::DataSheetDelegate(QObject *parent)
+SpreadSheetDelegate::SpreadSheetDelegate(QObject *parent)
         : QItemDelegate(parent) {}
 
-QWidget *DataSheetDelegate::createEditor(QWidget *parent,
+QWidget *SpreadSheetDelegate::createEditor(QWidget *parent,
                                           const QStyleOptionViewItem &,
                                           const QModelIndex &index) const
 {
-//    if (index.column() == 1) {
-//        QDateTimeEdit *editor = new QDateTimeEdit(parent);
-//        editor->setDisplayFormat("dd/M/yyyy");
-//        editor->setCalendarPopup(true);
-//        return editor;
-//    }
-
+    if (index.column() == 1) {
+        QDateTimeEdit *editor = new QDateTimeEdit(parent);
+        editor->setDisplayFormat("dd/M/yyyy");
+        editor->setCalendarPopup(true);
+        return editor;
+    }
+    else if(index.column() == 3)
+    {
+        QComboBox *editor = new QComboBox(parent);
+        editor->addItem(QString("1"));
+        editor->addItem(QString("2"));
+        editor->addItem(QString("3"));
+//        editor->installEventFilter(const_cast<SpreadSheetDelegate*>(this));
+        return editor;
+    }
     QLineEdit *editor = new QLineEdit(parent);
 
     // create a completer with the strings in the column as model
@@ -30,18 +38,18 @@ QWidget *DataSheetDelegate::createEditor(QWidget *parent,
 
     QCompleter *autoComplete = new QCompleter(allStrings);
     editor->setCompleter(autoComplete);
-    connect(editor, &QLineEdit::editingFinished, this, &DataSheetDelegate::commitAndCloseEditor);
+    connect(editor, &QLineEdit::editingFinished, this, &SpreadSheetDelegate::commitAndCloseEditor);
     return editor;
 }
 
-void DataSheetDelegate::commitAndCloseEditor()
+void SpreadSheetDelegate::commitAndCloseEditor()
 {
     QLineEdit *editor = qobject_cast<QLineEdit *>(sender());
     emit commitData(editor);
     emit closeEditor(editor);
 }
 
-void DataSheetDelegate::setEditorData(QWidget *editor,
+void SpreadSheetDelegate::setEditorData(QWidget *editor,
     const QModelIndex &index) const
 {
     QLineEdit *edit = qobject_cast<QLineEdit*>(editor);
@@ -55,10 +63,18 @@ void DataSheetDelegate::setEditorData(QWidget *editor,
         dateEditor->setDate(QDate::fromString(
                                 index.model()->data(index, Qt::EditRole).toString(),
                                 "d/M/yyyy"));
+        return;
     }
+    QComboBox *comboEditor = qobject_cast<QComboBox *>(editor);
+    if(comboEditor)
+    {
+        comboEditor->setCurrentText(index.model()->data(index, Qt::EditRole).toString());
+        return;
+    }
+
 }
 
-void DataSheetDelegate::setModelData(QWidget *editor,
+void SpreadSheetDelegate::setModelData(QWidget *editor,
     QAbstractItemModel *model, const QModelIndex &index) const
 {
     QLineEdit *edit = qobject_cast<QLineEdit *>(editor);
@@ -69,5 +85,14 @@ void DataSheetDelegate::setModelData(QWidget *editor,
 
     QDateTimeEdit *dateEditor = qobject_cast<QDateTimeEdit *>(editor);
     if (dateEditor)
+    {
         model->setData(index, dateEditor->date().toString("dd/M/yyyy"));
+        return;
+    }
+    QComboBox *comboEditor = qobject_cast<QComboBox *>(editor);
+    if(comboEditor)
+    {
+        model->setData(index, comboEditor->currentText());
+        return;
+    }
 }

@@ -1,25 +1,25 @@
-#include "datasheetitem.h"
+﻿#include "spreadsheetitem.h"
 
-DataSheetItem::DataSheetItem()
+SpreadSheetItem::SpreadSheetItem()
         : QTableWidgetItem(), isResolving(false)
 {
 }
 
-DataSheetItem::DataSheetItem(const QString &text)
+SpreadSheetItem::SpreadSheetItem(const QString &text)
         : QTableWidgetItem(text), isResolving(false)
 {
 }
 
-QTableWidgetItem *DataSheetItem::clone() const
+QTableWidgetItem *SpreadSheetItem::clone() const
 {
-    DataSheetItem *item = new DataSheetItem();
+    SpreadSheetItem *item = new SpreadSheetItem();
     *item = *this;
     return item;
 }
 
-QVariant DataSheetItem::data(int role) const
+QVariant SpreadSheetItem::data(int role) const
 {
-    if (role == Qt::EditRole || role == Qt::StatusTipRole)
+    if (role == Qt::EditRole /*|| role == Qt::StatusTipRole*/)
         return formula();
 
     if (role == Qt::DisplayRole)
@@ -44,14 +44,14 @@ QVariant DataSheetItem::data(int role) const
      return QTableWidgetItem::data(role);
  }
 
-void DataSheetItem::setData(int role, const QVariant &value)
+void SpreadSheetItem::setData(int role, const QVariant &value)
 {
     QTableWidgetItem::setData(role, value);
     if (tableWidget())
         tableWidget()->viewport()->update();
 }
 
-QVariant DataSheetItem::display() const
+QVariant SpreadSheetItem::display() const
 {
     // avoid circular dependencies
     if (isResolving)
@@ -63,7 +63,7 @@ QVariant DataSheetItem::display() const
     return result;
 }
 
-QVariant DataSheetItem::computeFormula(const QString &formula,
+QVariant SpreadSheetItem::computeFormula(const QString &formula,
                                          const QTableWidget *widget,
                                          const QTableWidgetItem *self)
 {

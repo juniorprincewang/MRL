@@ -1,19 +1,21 @@
-#ifndef DATASHEETITEM_H
-#define DATASHEETITEM_H
-#include "datasheet.h"
+﻿#pragma execution_character_set("utf-8")
+#ifndef SPREADSHEETITEM_H
+#define SPREADSHEETITEM_H
+
+#include "spreadsheet.h"
 
 #include <QTableWidgetItem>
 
-class DataSheetItem : public QTableWidgetItem
+class SpreadSheetItem : public QTableWidgetItem
 {
 public:
-    DataSheetItem();
-    DataSheetItem(const QString &text);
+    SpreadSheetItem();
+    SpreadSheetItem(const QString &text);
 
-    QTableWidgetItem *clone() const Q_DECL_OVERRIDE;
+    QTableWidgetItem *clone() const override;
 
-    QVariant data(int role) const Q_DECL_OVERRIDE;
-    void setData(int role, const QVariant &value) Q_DECL_OVERRIDE;
+    QVariant data(int role) const override;
+    void setData(int role, const QVariant &value) override;
     QVariant display() const;
 
     inline QString formula() const
@@ -29,4 +31,4 @@ private:
     mutable bool isResolving;
 };
 
-#endif // DATASHEETITEM_H
+#endif // SPREADSHEETITEM_H

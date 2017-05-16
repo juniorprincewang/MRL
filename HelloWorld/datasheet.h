@@ -1,50 +1,47 @@
-﻿#ifndef DATASHEET_H
+﻿#pragma execution_character_set("utf-8")
+#ifndef DATASHEET_H
 #define DATASHEET_H
-#include <QWidget>
-#include "datasheetdelegate.h"
-#include "datasheetitem.h"
-#include "exceldatastruct.h"
 
-class QAction;
-class QLabel;
-class QLineEdit;
-class QToolBar;
-class QTableWidgetItem;
-class QTableWidget;
-
+#include <QLabel>
+#include <QTableWidget>
+#include <QLineEdit>
+#include <QTableWidgetItem>
+#include <QAction>
+#include <QItemDelegate>
+#include <QTableWidgetItem>
+#include <QString>
+//#include <QtWidgets>
+#include <QObject>
+#include "publicdata.h"
 
 class DataSheet : public QWidget
 {
     Q_OBJECT
 
 public:
-
-    DataSheet(QWidget *parent = 0);
-    void addColumn();
-    void addColumns(QVector<DataStruct*> dataVector);
-    void reloadColumns(QVector<DataStruct*> dataVector);
+    DataSheet(int rows, int cols, QStringList headers, QWidget *parent = 0);
+    DataSheet(int rows, int cols, QWidget *parent = 0);
+    QVector<double> updateAcuteContents(AssessData *data);
+    QVector<double> updateChronicContents(AssessData *data);
+    void setHeader(QStringList headers);
 
 public slots:
-//    void updateStatus(QTableWidgetItem *item);
     void updateColor(QTableWidgetItem *item);
-    void updateLineEdit(QTableWidgetItem *item);
     void returnPressed();
     void selectColor();
     void selectFont();
     void clear();
-    void showAbout();
-
 
     void actionSum();
-    void actionSubtract();
     void actionAdd();
+    void actionSubtract();
     void actionMultiply();
     void actionDivide();
 
 protected:
-    void setupContextMenu();
     void setupContents();
 
+    void createActions();
 
     void actionMath_helper(const QString &title, const QString &op);
     bool runInputDialog(const QString &title,
@@ -54,7 +51,6 @@ protected:
                         const QString &outText,
                         QString *cell1, QString *cell2, QString *outCell);
 private:
-    QToolBar *toolBar;
     QAction *colorAction;
     QAction *fontAction;
     QAction *firstSeparator;
@@ -65,17 +61,72 @@ private:
     QAction *cell_divAction;
     QAction *secondSeparator;
     QAction *clearAction;
-    QAction *aboutDataSheet;
 
+    QAction *printAction;
 
-    QLabel *cellLabel;
     QTableWidget *table;
-    QLineEdit *formulaInput;
 
 };
 
-void decode_pos(const QString &pos, int *row, int *col);
-QString encode_pos(int row, int col);
 
+
+void decode_position(const QString &pos, int *row, int *col);
+QString encode_position(int row, int col);
+
+enum Columns
+{
+    COL_NAME,
+    COL_FI,
+    COL_STMR,
+    COL_SOURCE,
+    COL_NEDI,
+    COL_ALL,
+    COL_PERCENT
+};
+
+class DataSheetItem : public QTableWidgetItem
+{
+public:
+    DataSheetItem();
+    DataSheetItem(const QString &text);
+
+    QTableWidgetItem *clone() const override;
+
+    QVariant data(int role) const override;
+    void setData(int role, const QVariant &value) override;
+    QVariant display() const;
+
+    inline QString formula() const
+    {
+        return QTableWidgetItem::data(Qt::DisplayRole).toString();
+    }
+
+    static QVariant computeFormula(const QString &formula,
+                                   const QTableWidget *widget,
+                                   const QTableWidgetItem *self = 0);
+
+private:
+    mutable bool isResolving;
+};
+
+
+
+
+class DataSheetDelegate : public QItemDelegate
+{
+    Q_OBJECT
+
+public:
+    DataSheetDelegate(QObject *parent = 0);
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &,
+                          const QModelIndex &index) const override;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+    void setModelData(QWidget *editor, QAbstractItemModel *model,
+                      const QModelIndex &index) const override;
+
+private slots:
+    void commitAndCloseEditor();
+    void comboBoxChanged();
+};
 
 #endif // DATASHEET_H

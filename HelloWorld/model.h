@@ -271,6 +271,7 @@ public:
     // - 2  95-99
     // - 3  <95
     int ShapiroFranciaNormalityTest(double rSquaredValue);
+    int NormalityTest(double rSquaredValue);
 
 public:
     std::vector<double> residues;

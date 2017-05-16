@@ -14,6 +14,7 @@
 #include <QFile>
 #include <QDebug>
 #include <QLabel>
+#include <QScrollArea>
 #include "qexcel.h"
 #include "excel.h"
 #include "publicdata.h"

@@ -20,6 +20,13 @@ Content::Content(QWidget *parent)
     qqFigurePage = new QQFigureInterface(this);
     digFigurePage = new DigestionFigureInterface(this);
     digDefinitionPage = new DigestionDataDefinition(this);
+    assessInsertionPage = new AssessDataInsertion(this);
+    acuteDefinitionPage = new AcuteDataDefinition(this);
+    acuteAnalysisPage = new AcuteAssessAnalysis(this);
+    chronicAnalysisPage = new ChronicAssessAnalysis(this);
+    chronicDefinitionPage = new ChronicDataDefinition(this);
+//    QScrollArea *scrollArea = new QScrollArea;
+//    scrollArea->setWidget(assessInsertionPage);
 
     this->addWidget(welcomePage);   //0
     this->addWidget(helpPage);      //1
@@ -32,12 +39,28 @@ Content::Content(QWidget *parent)
     this->addWidget(digAnalysisPage);  //8
     this->addWidget(digFigurePage); // 9
     this->addWidget(digDefinitionPage); // 10
+    this->addWidget(assessInsertionPage);   // 11
+    this->addWidget(acuteDefinitionPage);   // 12
+    this->addWidget(acuteAnalysisPage);     // 13
+    this->addWidget(chronicDefinitionPage); //14
+    this->addWidget(chronicAnalysisPage);   //15
+
+    QLayout *stackLayout =  this->layout();
+    stackLayout->setAlignment(Qt::AlignCenter);
+//    delete stackLayout;
+//    this->setLayout(layout);
 
 
-    QHBoxLayout *layout = new QHBoxLayout();
-    layout->setAlignment(Qt::AlignCenter);
-    this->setLayout(layout);
-
+    QObject::connect(this->acuteDefinitionPage,
+                     static_cast<void (AcuteDataDefinition::*)(AssessData *, QVector<double>)>(&AcuteDataDefinition::sendSelectedData),
+                     this,
+                     &Content::receiveAssessSelectedData
+                     );
+    QObject::connect(this,
+                     static_cast<void (Content::*)(AssessData *, QVector<double>)>(&Content::sendSelectedData),
+                     this->acuteAnalysisPage,
+                     &AcuteAssessAnalysis::receiveSelectedData
+                     );
     QObject::connect(this->definitionPage,
                      static_cast<void (QQDataDefinition::*)(PesticideData *, int)>(&QQDataDefinition::sendSelectedData),
                      this,
@@ -74,16 +97,35 @@ Content::Content(QWidget *parent)
 
 void Content::setCurrentIndex(int index)
 {
+//    QStringList filter;
     QStackedWidget::setCurrentIndex(index);
     if(index == 4)
+    {
         listPage->freshFileList();
+    }
     else if(index == 5)
+    {
         definitionPage->freshFileList();
+    }
     else if(index == 10)
+    {
         digDefinitionPage->freshFileList();
+    }
+    else if (index == 12)
+    {
+        acuteDefinitionPage->freshFileList();
+    }
+    else if(index == 14)
+        chronicDefinitionPage->freshFileList();
+
+
 }
 
 void Content::receiveSelectedData(PesticideData *p, int key)
+{
+    emit sendSelectedData(p, key);
+}
+void Content::receiveAssessSelectedData(AssessData *p, QVector<double> key)
 {
     emit sendSelectedData(p, key);
 }
@@ -109,7 +151,14 @@ WelcomeInterface::WelcomeInterface(QWidget *parent)
     mainLayout = new QVBoxLayout();
     mainLayout->addWidget(label);
     mainLayout->setAlignment(label, Qt::AlignCenter);
-    this->setLayout(mainLayout);
+    // 设置滚动轴
+    QScrollArea *scrollArea = new QScrollArea(this);
+    scrollArea->setWidgetResizable(true);
+    QWidget *client = new QWidget(scrollArea);
+    client->setLayout(mainLayout);
+    scrollArea->setWidget(client);
+    this->setLayout(new QVBoxLayout);
+    this->layout()->addWidget(scrollArea);
 }
 
 HelpInterface::HelpInterface(QWidget *parent)
@@ -120,6 +169,14 @@ HelpInterface::HelpInterface(QWidget *parent)
     mainLayout = new QVBoxLayout();
     mainLayout->addWidget(label);
     mainLayout->setAlignment(label, Qt::AlignCenter);
-    this->setLayout(mainLayout);
+//    this->setLayout(mainLayout);
+    // 设置滚动轴
+    QScrollArea *scrollArea = new QScrollArea(this);
+    scrollArea->setWidgetResizable(true);
+    QWidget *client = new QWidget(scrollArea);
+    client->setLayout(mainLayout);
+    scrollArea->setWidget(client);
+    this->setLayout(new QVBoxLayout);
+    this->layout()->addWidget(scrollArea);
 }
 
